@@ -25,31 +25,12 @@ namespace Steft.SimpleCarousel
 
         private void OnValidate()
         {
+            // TODO this will be refactored as soon as we implement pooling
             if (m_PrefabElements != null)
             {
                 Debug.Log("OnValidate");
 
-                // capturing current children before we add new ones
-                var currentChildren = new List<Transform>(m_PrefabElementInstances.Length);
-                foreach (Transform child in transform)
-                {
-                    currentChildren.Add(child);
-                }
-
-                // unfortunately destroying GameObjects in OnValidate is not straightforward
-                // https://discussions.unity.com/t/onvalidate-and-destroying-objects/544819
-                UnityEditor.EditorApplication.delayCall += () =>
-                {
-                    foreach (Transform child in currentChildren)
-                    {
-                        // sanity check to avoid destroying something we don't want destroyed
-                        if (child != null && child.parent != transform)
-                            continue;
-
-                        DestroyImmediate(child.gameObject);
-                    }
-                };
-
+                var currentChildren = transform.GetChildren();
                 m_PrefabElementInstances = new GameObject[m_PrefabElements.Length];
                 for (int i = 0; i < m_PrefabElements.Length; i++)
                 {
@@ -67,10 +48,25 @@ namespace Steft.SimpleCarousel
                     }
 
                     // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
-                    var prefabInstance = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(element, transform);
+                    var prefabInstance =
+                        (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(element, transform);
                     prefabInstance.hideFlags    = HideFlags.NotEditable;
                     m_PrefabElementInstances[i] = prefabInstance;
                 }
+
+                // unfortunately destroying GameObjects in OnValidate is not straightforward
+                // https://discussions.unity.com/t/onvalidate-and-destroying-objects/544819
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    foreach (Transform child in currentChildren)
+                    {
+                        // sanity check to avoid destroying something we don't want destroyed
+                        if (child != null && child.parent != transform)
+                            continue;
+
+                        DestroyImmediate(child.gameObject);
+                    }
+                };
             }
         }
 #endif
