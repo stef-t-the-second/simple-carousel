@@ -78,3 +78,7 @@ crashlytics-build.properties
 # Imported samples from packages
 Assets/Samples/
 Assets/Samples.meta
+
+# TMP
+Assets/TextMesh Pro/*
+Assets/TextMesh Pro.meta
