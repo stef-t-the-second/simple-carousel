@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,9 +20,9 @@ namespace Steft.SimpleCarousel
 
         [SerializeField] private GameObject m_PrefabElement;
 
-        private RectTransform[] m_DisplayedElementInstances;
+        private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
-        public IReadOnlyList<RectTransform> prefabElementInstances => m_DisplayedElementInstances;
+        [SerializeField] private float m_CurrentScrollPosition = 2f;
 
 #region Unity Methods
 
@@ -42,11 +43,11 @@ namespace Steft.SimpleCarousel
                     return;
                 }
 
-                if (transform.childCount               != m_NumberDisplayedElements ||
-                    m_DisplayedElementInstances.Length != m_NumberDisplayedElements)
+                if (transform.childCount   != m_NumberDisplayedElements ||
+                    m_CarouselCells.Length != m_NumberDisplayedElements)
                 {
                     var currentChildren = transform.GetChildren();
-                    m_DisplayedElementInstances = new RectTransform[m_NumberDisplayedElements];
+                    m_CarouselCells = new SimpleCarouselCell[m_NumberDisplayedElements];
 
                     for (int i = 0; i < m_NumberDisplayedElements; i++)
                     {
@@ -57,7 +58,7 @@ namespace Steft.SimpleCarousel
                         rectTransform.ResetToMiddleCenter();
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
-                        m_DisplayedElementInstances[i] = rectTransform;
+                        m_CarouselCells[i] = new SimpleCarouselCell(i, rectTransform);
                     }
 
                     // unfortunately destroying GameObjects in OnValidate is not straightforward
@@ -120,50 +121,56 @@ namespace Steft.SimpleCarousel
             float neighbourHeightWorld =
                 ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y * scale;
 
-            for (int i = 0; i < m_DisplayedElementInstances.Length; i++)
+            int cellLayers = m_NumberDisplayedElements / 2 + 1;
+            foreach (var cell in m_CarouselCells)
             {
-                var rectTransform = m_DisplayedElementInstances[i].transform as RectTransform;
-                // sanity check that should under no circumstances trigger,
-                // because we are dealing with UI elements that all come with a RectTransform
-                if (rectTransform == null)
-                {
-                    Debug.LogError("Displayed GameObject has no RectTransform attached.");
-                    return;
-                }
-
-                int offsetFromCenter = Mathf.RoundToInt(i - currentScrollPosition);
-
-                float posX, posY, rotY;
+                int cellIndex = cell.carouselIndex;
+                int offsetFromCenter = Mathf.RoundToInt(cellIndex - currentScrollPosition);
+                int offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
+                float posX, posY, posZ, rotY;
                 if (offsetFromCenter == 0)
                 {
-                    rectTransform.localScale = Vector3.one;
+                    cell.rectTransform.localScale = Vector3.one;
 
                     posX = 0;
                     posY = 0;
+                    posZ = 0;
                     rotY = 0;
                 }
                 else
                 {
                     int leftOrRight = offsetFromCenter > 0 ? 1 : -1;
-                    int offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
 
-                    rectTransform.localScale = Vector3.one * 0.8f;
+                    cell.rectTransform.localScale = Vector3.one * 0.8f;
                     posX =
                     (
                         (centerWidthWorld + neighbourWidthWorld) / 2 +
                         neighbourWidthWorld                      * (offsetFromCenterAbs - 1)
                         - (neighbourWidthWorld * relativeOverlap *
-                           //more overlap the further out we are
+                           // more overlap the further out we are
                            offsetFromCenterAbs * offsetFromCenterAbs)
                     ) * leftOrRight;
 
                     posY = 0;
-                    rotY = rotationStep * offsetFromCenter;
+                    posZ = positionStep *
+                           // further back the further out we are
+                           offsetFromCenterAbs * offsetFromCenterAbs;
+                    rotY = -rotationStep * offsetFromCenter;
                 }
 
-                rectTransform.anchoredPosition = new Vector2(posX, posY);
-                rectTransform.localRotation    = Quaternion.Euler(0, rotY, 0);
+                cell.rectTransform.localPosition = new Vector3(posX, posY, posZ);
+                cell.rectTransform.localRotation = Quaternion.Euler(0, rotY, 0);
+
+                // sibling order determines render order
+                // center is considered the first layer; its neighbours the second layer, etc.
+                // last sibling is rendered last; hence the last sibling is ultimately in front
+                cell.rectTransform.SetSiblingIndex(cellLayers - offsetFromCenterAbs);
             }
+        }
+
+        public void SetLayoutHorizontal()
+        {
+            UpdateLayout();
         }
 
         public void SetLayoutVertical()
