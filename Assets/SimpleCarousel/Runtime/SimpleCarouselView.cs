@@ -22,7 +22,7 @@ namespace Steft.SimpleCarousel
 
         private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
-        [SerializeField] private float m_NewTargetScrollPosition = 2f;
+        [Range(0, 5)] [SerializeField] private float m_NewTargetScrollPosition = 2f;
 
 #region Unity Methods
 
@@ -180,17 +180,19 @@ namespace Steft.SimpleCarousel
 
         private void UpdateLayout()
         {
+            // TODO double check that "lossyScale" is used correctly in the following
+
             if (transform.childCount == 0)
                 return;
 
             float currentScrollPosition = Mathf.Clamp(m_CurrentScrollPosition, 0, m_NumberDisplayedElements - 1);
-            Debug.Log($"{nameof(currentScrollPosition)} {currentScrollPosition}");
+            // Debug.Log($"{nameof(currentScrollPosition)} {currentScrollPosition}");
 
             // instead of have an absolute overlap depending on a cells width,
             // we may implement an overlap depending on the orthogonal size of a cell on screen
             // to implement this idea, we must consider the rotation of a cell, which changes the occupied pixels on screen
             float relativeOverlap = 0.2f;
-            float scale = 0.8f;
+            float neighbourScale = 0.8f;
             float rotationStep = 20;
             float positionStep = 80;
             float centerWidthWorld =
@@ -198,18 +200,18 @@ namespace Steft.SimpleCarousel
             float centerHeightWorld =
                 ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y;
             float neighbourWidthWorld =
-                ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x * scale;
+                ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x * neighbourScale;
             float neighbourHeightWorld =
-                ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y * scale;
+                ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y * neighbourScale;
 
-            int cellLayers = m_NumberDisplayedElements / 2 + 1;
+            float cellLayers = Mathf.Max(currentScrollPosition, m_CarouselCells.Length - currentScrollPosition);
             foreach (var cell in m_CarouselCells)
             {
                 int cellIndex = cell.carouselIndex;
-                int offsetFromCenter = Mathf.RoundToInt(cellIndex - currentScrollPosition);
-                int offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
+                float offsetFromCenter = cellIndex - currentScrollPosition;
+                float offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
                 float posX, posY, posZ, rotY;
-                if (offsetFromCenter == 0)
+                if (Mathf.Approximately(offsetFromCenter, 0))
                 {
                     cell.rectTransform.localScale = Vector3.one;
 
@@ -222,12 +224,26 @@ namespace Steft.SimpleCarousel
                 {
                     int leftOrRight = offsetFromCenter > 0 ? 1 : -1;
 
-                    cell.rectTransform.localScale = Vector3.one * 0.8f;
+                    float scale = offsetFromCenterAbs < 1
+                        // immediate neighbours of center require transition of scale
+                        ? Mathf.Lerp(1f, neighbourScale, offsetFromCenterAbs)
+                        : neighbourScale;
+
+                    cell.rectTransform.localScale = Vector3.one * scale;
+                    float currentNeighbourWidthWorld =
+                        cell.rectTransform.rect.width * cell.rectTransform.lossyScale.x;
+
                     posX =
                     (
-                        (centerWidthWorld + neighbourWidthWorld) / 2 +
-                        neighbourWidthWorld                      * (offsetFromCenterAbs - 1)
-                        - (neighbourWidthWorld * relativeOverlap *
+                        // for example for center and left neighbour:
+                        // right edge of the neighbour will align with left edge of the center
+                        (centerWidthWorld + currentNeighbourWidthWorld) / 2 +
+
+                        // in which layer (how far out) this cell is
+                        currentNeighbourWidthWorld * (offsetFromCenterAbs - 1)
+
+                        //
+                        - (currentNeighbourWidthWorld * relativeOverlap *
                            // more overlap the further out we are
                            offsetFromCenterAbs * offsetFromCenterAbs)
                     ) * leftOrRight;
@@ -245,7 +261,12 @@ namespace Steft.SimpleCarousel
                 // sibling order determines render order
                 // center is considered the first layer; its neighbours the second layer, etc.
                 // last sibling is rendered last; hence the last sibling is ultimately in front
-                cell.rectTransform.SetSiblingIndex(cellLayers - offsetFromCenterAbs);
+                // TODO fix setting of sibling index
+                int siblingIndex = Mathf.RoundToInt(cellLayers - offsetFromCenterAbs) - 1;
+                cell.rectTransform.SetSiblingIndex(siblingIndex);
+
+                if (offsetFromCenterAbs < 1)
+                    Debug.Log($"{cellIndex}: {cellLayers}, {siblingIndex}");
             }
         }
 
