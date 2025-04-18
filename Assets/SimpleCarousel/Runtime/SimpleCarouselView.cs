@@ -28,7 +28,7 @@ namespace Steft.SimpleCarousel
 
 #if UNITY_EDITOR
 
-        private void OnValidate()
+        private void Awake()
         {
             // TODO this will be refactored as soon as we implement pooling
             if (m_PrefabElement != null)
@@ -46,7 +46,11 @@ namespace Steft.SimpleCarousel
                 if (transform.childCount   != m_NumberDisplayedElements ||
                     m_CarouselCells.Length != m_NumberDisplayedElements)
                 {
-                    var currentChildren = transform.GetChildren();
+                    foreach (Transform child in transform)
+                    {
+                        Destroy(child.gameObject);
+                    }
+
                     m_CarouselCells = new SimpleCarouselCell[m_NumberDisplayedElements];
 
                     for (int i = 0; i < m_NumberDisplayedElements; i++)
@@ -56,27 +60,98 @@ namespace Steft.SimpleCarousel
                             (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabElement, transform);
                         var rectTransform = prefabInstance.transform as RectTransform;
                         rectTransform.ResetToMiddleCenter();
+                        rectTransform.gameObject.name += " (" + i + ")";
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
+                        // prefabInstance.hideFlags = HideFlags.DontSave;
                         m_CarouselCells[i] = new SimpleCarouselCell(i, rectTransform);
                     }
-
-                    // unfortunately destroying GameObjects in OnValidate is not straightforward
-                    // https://discussions.unity.com/t/onvalidate-and-destroying-objects/544819
-                    UnityEditor.EditorApplication.delayCall += () =>
-                    {
-                        foreach (Transform child in currentChildren)
-                        {
-                            // sanity check to avoid destroying something we don't want destroyed
-                            if (child != null && child.parent != transform)
-                                continue;
-
-                            DestroyImmediate(child.gameObject);
-                        }
-                    };
                 }
             }
+
+            m_CurrentScrollPosition = m_NewTargetScrollPosition;
+
+            // TODO remove from OnValidate later one
+            UpdateLayout();
         }
+
+        public void Update()
+        {
+            if (!Mathf.Approximately(m_TargetScrollPosition, m_NewTargetScrollPosition))
+            {
+                m_ScrollVelocity       = 0.0001f;
+                m_TargetScrollPosition = m_NewTargetScrollPosition;
+            }
+
+            m_CurrentScrollPosition = Mathf.SmoothDamp(
+                m_CurrentScrollPosition, m_TargetScrollPosition, ref m_ScrollVelocity, m_ScrollSmoothTime);
+
+            if (!m_IsDragging && Mathf.Abs(m_ScrollVelocity)                < 0.01f &&
+                Mathf.Abs(m_TargetScrollPosition - m_CurrentScrollPosition) < 0.01f)
+            {
+                m_CurrentScrollPosition = m_TargetScrollPosition;
+                m_ScrollVelocity        = 0f;
+            }
+
+            UpdateLayout();
+        }
+
+        // private void OnValidate()
+        // {
+        //     // TODO this will be refactored as soon as we implement pooling
+        //     if (m_PrefabElement != null)
+        //     {
+        //         Debug.Log("OnValidate");
+        //
+        //         // is it a GameObject reference of an instance in the scene?
+        //         // is it a Prefab reference?
+        //         if (m_PrefabElement.scene.IsValid())
+        //         {
+        //             Debug.LogWarning($"Prefab reference required, but was GameObject instance: {m_PrefabElement.name}");
+        //             return;
+        //         }
+        //
+        //         if (transform.childCount   != m_NumberDisplayedElements ||
+        //             m_CarouselCells.Length != m_NumberDisplayedElements)
+        //         {
+        //             var currentChildren = transform.GetChildren();
+        //             m_CarouselCells = new SimpleCarouselCell[m_NumberDisplayedElements];
+        //
+        //             for (int i = 0; i < m_NumberDisplayedElements; i++)
+        //             {
+        //                 // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
+        //                 var prefabInstance =
+        //                     (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabElement, transform);
+        //                 var rectTransform = prefabInstance.transform as RectTransform;
+        //                 rectTransform.ResetToMiddleCenter();
+        //                 rectTransform.gameObject.name += " (" + i + ")";
+        //
+        //                 // prefabInstance.hideFlags       = HideFlags.NotEditable;
+        //                 // prefabInstance.hideFlags = HideFlags.DontSave;
+        //                 m_CarouselCells[i] = new SimpleCarouselCell(i, rectTransform);
+        //             }
+        //
+        //             // unfortunately destroying GameObjects in OnValidate is not straightforward
+        //             // https://discussions.unity.com/t/onvalidate-and-destroying-objects/544819
+        //             UnityEditor.EditorApplication.delayCall += () =>
+        //             {
+        //                 foreach (Transform child in currentChildren)
+        //                 {
+        //                     // sanity check to avoid destroying something we don't want destroyed
+        //                     if (child != null && child.parent != transform)
+        //                         continue;
+        //
+        //                     DestroyImmediate(child.gameObject);
+        //                 }
+        //             };
+        //         }
+        //     }
+        //
+        //     m_CurrentScrollPosition = m_NewTargetScrollPosition;
+        //
+        //     // TODO remove from OnValidate later one
+        //     UpdateLayout();
+        // }
 
 #endif
 
