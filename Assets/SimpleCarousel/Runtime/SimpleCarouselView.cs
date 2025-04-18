@@ -8,16 +8,20 @@ namespace Steft.SimpleCarousel
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
     public class SimpleCarouselView : MonoBehaviour,
-        IBeginDragHandler, IEndDragHandler, IDragHandler,
-        ILayoutGroup
+        IBeginDragHandler, IEndDragHandler, IDragHandler, ILayoutGroup
     {
-        [SerializeField] private GameObject[] m_PrefabElements;
+        // TODO add tooltip attributes to all sfields
 
-        private GameObject[] m_PrefabElementInstances;
+        // TODO do we need this to be an odd number? OnValidate: If even; +1?
+        [Min(1), SerializeField] private int m_NumberDisplayedElements = 3;
 
-        public IReadOnlyList<GameObject> prefabElements => m_PrefabElements;
+        [Range(0.1f, 0.4f)] private float m_Overlap = 0.2f; // relative
 
-        public IReadOnlyList<GameObject> prefabElementInstances => m_PrefabElementInstances;
+        [SerializeField] private GameObject m_PrefabElement;
+
+        private RectTransform[] m_DisplayedElementInstances;
+
+        public IReadOnlyList<RectTransform> prefabElementInstances => m_DisplayedElementInstances;
 
 #region Unity Methods
 
@@ -26,49 +30,53 @@ namespace Steft.SimpleCarousel
         private void OnValidate()
         {
             // TODO this will be refactored as soon as we implement pooling
-            if (m_PrefabElements != null)
+            if (m_PrefabElement != null)
             {
                 Debug.Log("OnValidate");
 
-                var currentChildren = transform.GetChildren();
-                m_PrefabElementInstances = new GameObject[m_PrefabElements.Length];
-                for (int i = 0; i < m_PrefabElements.Length; i++)
+                // is it a GameObject reference of an instance in the scene?
+                // is it a Prefab reference?
+                if (m_PrefabElement.scene.IsValid())
                 {
-                    var element = m_PrefabElements[i];
-                    if (element == null)
-                        continue;
-
-                    // is it a GameObject reference of an instance in the scene?
-                    // is it a Prefab reference?
-                    if (element.scene.IsValid())
-                    {
-                        Debug.LogWarning(
-                            $"Skipping. Prefab reference required, but was GameObject instance: {element.name}");
-                        continue;
-                    }
-
-                    // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
-                    var prefabInstance =
-                        (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(element, transform);
-                    prefabInstance.hideFlags    = HideFlags.NotEditable;
-                    m_PrefabElementInstances[i] = prefabInstance;
+                    Debug.LogWarning($"Prefab reference required, but was GameObject instance: {m_PrefabElement.name}");
+                    return;
                 }
 
-                // unfortunately destroying GameObjects in OnValidate is not straightforward
-                // https://discussions.unity.com/t/onvalidate-and-destroying-objects/544819
-                UnityEditor.EditorApplication.delayCall += () =>
+                if (transform.childCount               != m_NumberDisplayedElements ||
+                    m_DisplayedElementInstances.Length != m_NumberDisplayedElements)
                 {
-                    foreach (Transform child in currentChildren)
-                    {
-                        // sanity check to avoid destroying something we don't want destroyed
-                        if (child != null && child.parent != transform)
-                            continue;
+                    var currentChildren = transform.GetChildren();
+                    m_DisplayedElementInstances = new RectTransform[m_NumberDisplayedElements];
 
-                        DestroyImmediate(child.gameObject);
+                    for (int i = 0; i < m_NumberDisplayedElements; i++)
+                    {
+                        // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
+                        var prefabInstance =
+                            (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(m_PrefabElement, transform);
+                        var rectTransform = prefabInstance.transform as RectTransform;
+                        rectTransform.ResetToMiddleCenter();
+
+                        // prefabInstance.hideFlags       = HideFlags.NotEditable;
+                        m_DisplayedElementInstances[i] = rectTransform;
                     }
-                };
+
+                    // unfortunately destroying GameObjects in OnValidate is not straightforward
+                    // https://discussions.unity.com/t/onvalidate-and-destroying-objects/544819
+                    UnityEditor.EditorApplication.delayCall += () =>
+                    {
+                        foreach (Transform child in currentChildren)
+                        {
+                            // sanity check to avoid destroying something we don't want destroyed
+                            if (child != null && child.parent != transform)
+                                continue;
+
+                            DestroyImmediate(child.gameObject);
+                        }
+                    };
+                }
             }
         }
+
 #endif
 
 #endregion
@@ -96,8 +104,66 @@ namespace Steft.SimpleCarousel
 
         public void SetLayoutHorizontal()
         {
-            // note that SetLayoutHorizontal is called BEFORE SetLayoutVertical by the auto layout system
-            Debug.Log("SetLayoutHorizontal");
+            if (transform.childCount == 0)
+                return;
+
+            float currentScrollPosition = 2;
+            float relativeOverlap = 0.2f;
+            float scale = 0.8f;
+            float rotationStep = -20;
+            float centerWidthWorld =
+                ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x;
+            float centerHeightWorld =
+                ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y;
+            float neighbourWidthWorld =
+                ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x * scale;
+            float neighbourHeightWorld =
+                ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y * scale;
+
+            for (int i = 0; i < m_DisplayedElementInstances.Length; i++)
+            {
+                var rectTransform = m_DisplayedElementInstances[i].transform as RectTransform;
+                // sanity check that should under no circumstances trigger,
+                // because we are dealing with UI elements that all come with a RectTransform
+                if (rectTransform == null)
+                {
+                    Debug.LogError("Displayed GameObject has no RectTransform attached.");
+                    return;
+                }
+
+                int offsetFromCenter = Mathf.RoundToInt(i - currentScrollPosition);
+
+                float posX, posY, rotY;
+                if (offsetFromCenter == 0)
+                {
+                    rectTransform.localScale = Vector3.one;
+
+                    posX = 0;
+                    posY = 0;
+                    rotY = 0;
+                }
+                else
+                {
+                    int leftOrRight = offsetFromCenter > 0 ? 1 : -1;
+                    int offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
+
+                    rectTransform.localScale = Vector3.one * 0.8f;
+                    posX =
+                    (
+                        (centerWidthWorld + neighbourWidthWorld) / 2 +
+                        neighbourWidthWorld                      * (offsetFromCenterAbs - 1)
+                        - (neighbourWidthWorld * relativeOverlap *
+                           //more overlap the further out we are
+                           offsetFromCenterAbs * offsetFromCenterAbs)
+                    ) * leftOrRight;
+
+                    posY = 0;
+                    rotY = rotationStep * offsetFromCenter;
+                }
+
+                rectTransform.anchoredPosition = new Vector2(posX, posY);
+                rectTransform.localRotation    = Quaternion.Euler(0, rotY, 0);
+            }
         }
 
         public void SetLayoutVertical()
