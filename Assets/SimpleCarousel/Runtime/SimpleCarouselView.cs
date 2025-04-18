@@ -207,12 +207,14 @@ namespace Steft.SimpleCarousel
             float neighbourHeightWorld =
                 ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y * neighbourScale;
 
-            float cellLayers = Mathf.Max(currentScrollPosition, m_CarouselCells.Length - currentScrollPosition);
+            var offsetsToTransforms = new List<(int offsetFromCenter, RectTransform rectTransform)>();
             foreach (var cell in m_CarouselCells)
             {
                 int cellIndex = cell.carouselIndex;
                 float offsetFromCenter = cellIndex - currentScrollPosition;
                 float offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
+                offsetsToTransforms.Add((Mathf.RoundToInt(offsetFromCenterAbs), cell.rectTransform));
+
                 float posX, posY, posZ, rotY;
                 if (Mathf.Approximately(offsetFromCenter, 0))
                 {
@@ -260,16 +262,20 @@ namespace Steft.SimpleCarousel
 
                 cell.rectTransform.localPosition = new Vector3(posX, posY, posZ);
                 cell.rectTransform.localRotation = Quaternion.Euler(0, rotY, 0);
+            }
 
-                // sibling order determines render order
-                // center is considered the first layer; its neighbours the second layer, etc.
-                // last sibling is rendered last; hence the last sibling is ultimately in front
-                // TODO fix setting of sibling index
-                int siblingIndex = Mathf.RoundToInt(cellLayers - offsetFromCenterAbs) - 1;
-                cell.rectTransform.SetSiblingIndex(siblingIndex);
+            // sibling order determines render order
+            // center is considered the first layer; its neighbours the second layer, etc.
+            // last sibling is rendered last; hence the last sibling is ultimately in front
+            // TODO maybe we can find a better way to solve this
+            var offsetsToTransformsOrdered = offsetsToTransforms
+                .OrderBy(t => t.offsetFromCenter)
+                .ToArray();
 
-                if (offsetFromCenterAbs < 1)
-                    Debug.Log($"{cellIndex}: {cellLayers}, {siblingIndex}");
+            for (int i = 0; i < offsetsToTransformsOrdered.Length; i++)
+            {
+                var rectTransform = offsetsToTransformsOrdered[i].rectTransform;
+                rectTransform.SetSiblingIndex(offsetsToTransformsOrdered.Length - 1 - i);
             }
         }
 
