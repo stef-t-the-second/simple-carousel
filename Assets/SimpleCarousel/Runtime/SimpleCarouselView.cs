@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ namespace Steft.SimpleCarousel
 
         private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
-        [Range(0, 5)] [SerializeField] private float m_NewTargetScrollPosition = 2f;
+        [Range(0, 5)] [SerializeField] private float m_NewTargetScrollIndex = 2f;
 
 #region Unity Methods
 
@@ -69,7 +70,7 @@ namespace Steft.SimpleCarousel
                 }
             }
 
-            m_CurrentScrollPosition = m_NewTargetScrollPosition;
+            m_CurrentScrollIndex = m_NewTargetScrollIndex;
 
             // TODO remove from OnValidate later one
             UpdateLayout();
@@ -77,20 +78,20 @@ namespace Steft.SimpleCarousel
 
         public void Update()
         {
-            if (!Mathf.Approximately(m_TargetScrollPosition, m_NewTargetScrollPosition))
+            if (!Mathf.Approximately(m_TargetScrollIndex, m_NewTargetScrollIndex))
             {
-                m_ScrollVelocity       = 0.0001f;
-                m_TargetScrollPosition = m_NewTargetScrollPosition;
+                m_ScrollVelocity    = 0.0001f;
+                m_TargetScrollIndex = m_NewTargetScrollIndex;
             }
 
-            m_CurrentScrollPosition = Mathf.SmoothDamp(
-                m_CurrentScrollPosition, m_TargetScrollPosition, ref m_ScrollVelocity, m_ScrollSmoothTime);
+            m_CurrentScrollIndex = Mathf.SmoothDamp(
+                m_CurrentScrollIndex, m_TargetScrollIndex, ref m_ScrollVelocity, m_ScrollSmoothTime);
 
-            if (!m_IsDragging && Mathf.Abs(m_ScrollVelocity)                < 0.01f &&
-                Mathf.Abs(m_TargetScrollPosition - m_CurrentScrollPosition) < 0.01f)
+            if (!m_IsDragging && Mathf.Abs(m_ScrollVelocity)          < 0.01f &&
+                Mathf.Abs(m_TargetScrollIndex - m_CurrentScrollIndex) < 0.01f)
             {
-                m_CurrentScrollPosition = m_TargetScrollPosition;
-                m_ScrollVelocity        = 0f;
+                m_CurrentScrollIndex = m_TargetScrollIndex;
+                m_ScrollVelocity     = 0f;
             }
 
             UpdateLayout();
@@ -159,6 +160,8 @@ namespace Steft.SimpleCarousel
 
 #region Drag Handlers
 
+        private float m_CurrentScrollIndex = 2; // 0 based
+        private float m_TargetScrollIndex;      // 0 based
         public void OnBeginDrag(PointerEventData eventData)
         {
             Debug.Log("OnBeginDrag");
@@ -185,7 +188,7 @@ namespace Steft.SimpleCarousel
             if (transform.childCount == 0)
                 return;
 
-            float currentScrollPosition = Mathf.Clamp(m_CurrentScrollPosition, 0, m_NumberDisplayedElements - 1);
+            float currentScrollPosition = Mathf.Clamp(m_CurrentScrollIndex, 0, m_NumberDisplayedElements - 1);
             // Debug.Log($"{nameof(currentScrollPosition)} {currentScrollPosition}");
 
             // instead of have an absolute overlap depending on a cells width,
