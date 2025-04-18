@@ -22,7 +22,7 @@ namespace Steft.SimpleCarousel
 
         private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
-        [SerializeField] private float m_CurrentScrollPosition = 2f;
+        [SerializeField] private float m_NewTargetScrollPosition = 2f;
 
 #region Unity Methods
 
@@ -178,15 +178,21 @@ namespace Steft.SimpleCarousel
 
 #region Layout Group
 
-        public void SetLayoutHorizontal()
+        private void UpdateLayout()
         {
             if (transform.childCount == 0)
                 return;
 
-            float currentScrollPosition = 2;
+            float currentScrollPosition = Mathf.Clamp(m_CurrentScrollPosition, 0, m_NumberDisplayedElements - 1);
+            Debug.Log($"{nameof(currentScrollPosition)} {currentScrollPosition}");
+
+            // instead of have an absolute overlap depending on a cells width,
+            // we may implement an overlap depending on the orthogonal size of a cell on screen
+            // to implement this idea, we must consider the rotation of a cell, which changes the occupied pixels on screen
             float relativeOverlap = 0.2f;
             float scale = 0.8f;
-            float rotationStep = -20;
+            float rotationStep = 20;
+            float positionStep = 80;
             float centerWidthWorld =
                 ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x;
             float centerHeightWorld =
