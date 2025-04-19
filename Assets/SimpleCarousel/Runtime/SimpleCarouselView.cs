@@ -193,6 +193,8 @@ namespace Steft.SimpleCarousel
         private void UpdateLayout()
         {
             // TODO double check that "lossyScale" is used correctly in the following
+            // TODO add support to immediately snap to specific index or smooth scroll to it
+            //      (isn't this already controlled by "CurrentScrollIndex"?)
 
             if (transform.childCount == 0)
                 return;
