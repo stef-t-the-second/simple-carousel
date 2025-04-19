@@ -14,7 +14,5 @@ namespace Steft.SimpleCarousel.Drag
         public float currentScrollIndex { get; }
 
         public bool isDragging { get; }
-
-        public Vector2 smoothedDelta { get; }
     }
 }

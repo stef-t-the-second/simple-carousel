@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace Steft.SimpleCarousel.Drag
 {
-    public class NormalizedDrag : MonoBehaviour, ISteppedSmoothDragHandler
+    public class NormalizedDeltaDrag : MonoBehaviour, ISteppedSmoothDragHandler
     {
         private const float k_MinMaximumScrollIndex = 2f;
 
@@ -41,8 +41,6 @@ namespace Steft.SimpleCarousel.Drag
 
         public bool isDragging { get; private set; }
 
-        public Vector2 smoothedDelta { get; private set; }
-
         private void Awake()
         {
             m_RectTransform = transform as RectTransform;
@@ -71,7 +69,6 @@ namespace Steft.SimpleCarousel.Drag
         {
             if (isDragging) return;
             isDragging        = true;
-            smoothedDelta     = Vector2.zero;
             targetScrollIndex = currentScrollIndex;
             m_LastLocalCursor = Vector2.zero;
             m_ScrollVelocity  = 0f;
@@ -95,7 +92,7 @@ namespace Steft.SimpleCarousel.Drag
                 (localCursor.y - m_LastLocalCursor.y) / ((RectTransform)transform).rect.height
             );
 
-            smoothedDelta     =  -normalizedDelta * m_ScrollSensitivity;
+            var smoothedDelta = -normalizedDelta * m_ScrollSensitivity;
             targetScrollIndex += smoothedDelta.x;
             m_LastLocalCursor =  localCursor;
         }
@@ -103,7 +100,6 @@ namespace Steft.SimpleCarousel.Drag
         public void OnEndDrag(PointerEventData eventData)
         {
             isDragging        = false;
-            smoothedDelta     = Vector2.zero;
             m_LastLocalCursor = Vector2.zero;
             targetScrollIndex = Mathf.Round(targetScrollIndex);
             targetScrollIndex = Mathf.Clamp(targetScrollIndex, 0f, m_MaximumScrollIndex);
