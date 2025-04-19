@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace Steft.SimpleCarousel.Drag
 {
-    public class NormalizedDragSmoother : MonoBehaviour, ISmoothDragProvider
+    public class NormalizedDrag : MonoBehaviour, ISmoothDragProvider
     {
         [Range(0.1f, 100f)] [SerializeField] private float m_ScrollSensitivity = 10f;
 
