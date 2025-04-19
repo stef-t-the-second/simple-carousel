@@ -10,8 +10,7 @@ namespace Steft.SimpleCarousel
 {
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
-    public class SimpleCarouselView : MonoBehaviour,
-        IBeginDragHandler, IEndDragHandler, IDragHandler, ILayoutGroup
+    public class SimpleCarouselView : MonoBehaviour, ILayoutGroup
     {
         // TODO add tooltip attributes to all sfields
 
@@ -24,16 +23,9 @@ namespace Steft.SimpleCarousel
 
         private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
-        [Range(0, 5)] [SerializeField] private float m_NewTargetScrollIndex = 2f;
-
         private int m_StartPositionIndex = 2;
 
-        private ISmoothDragProvider m_SmoothDragProvider;
-
-        private float m_CurrentScrollIndex = 2; // 0 based
-        private float m_TargetScrollIndex;      // 0 based
-        private float m_ScrollVelocity;
-        private float m_ScrollSmoothTime = 0.2f;
+        private ISteppedSmoothDragHandler m_SteppedDragHandler;
 
 #region Unity Methods
 
@@ -41,8 +33,9 @@ namespace Steft.SimpleCarousel
 
         private void Awake()
         {
-            m_SmoothDragProvider = GetComponent<ISmoothDragProvider>();
-            Debug.Log(m_SmoothDragProvider);
+            m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
+            Debug.Log(m_SteppedDragHandler);
+            m_SteppedDragHandler.maximumScrollIndex = m_NumberDisplayedElements - 1;
 
             Application.targetFrameRate = 10;
 
@@ -91,17 +84,7 @@ namespace Steft.SimpleCarousel
 
         public void Update()
         {
-            m_CurrentScrollIndex = Mathf.SmoothDamp(
-                m_CurrentScrollIndex, m_TargetScrollIndex, ref m_ScrollVelocity, m_ScrollSmoothTime, 10);
-
-            if (!m_SmoothDragProvider.isDragging                              &&
-                Mathf.Abs(m_ScrollVelocity)                           < 0.01f &&
-                Mathf.Abs(m_TargetScrollIndex - m_CurrentScrollIndex) < 0.01f)
-            {
-                m_CurrentScrollIndex = m_TargetScrollIndex;
-                m_ScrollVelocity     = 0f;
-            }
-
+            // TODO grab "layout interface" and pass ISteppedSmoothDragHandler.currentScrollIndex into the UpdateLayout method
             UpdateLayout();
         }
 
@@ -166,28 +149,6 @@ namespace Steft.SimpleCarousel
 
 #endregion
 
-#region Drag Handlers
-
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            m_TargetScrollIndex = m_CurrentScrollIndex;
-            m_ScrollVelocity    = 0f;
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            if (!m_SmoothDragProvider.isDragging) return;
-            m_TargetScrollIndex += m_SmoothDragProvider.smoothedDelta.x;
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            m_TargetScrollIndex = Mathf.Round(m_TargetScrollIndex);
-            m_TargetScrollIndex = Mathf.Clamp(m_TargetScrollIndex, 0f, m_NumberDisplayedElements - 1);
-        }
-
-#endregion
-
 #region Layout Group
 
         private void UpdateLayout()
@@ -199,7 +160,8 @@ namespace Steft.SimpleCarousel
             if (transform.childCount == 0)
                 return;
 
-            float currentScrollPosition = Mathf.Clamp(m_CurrentScrollIndex, 0, m_NumberDisplayedElements - 1);
+            float currentScrollPosition =
+                Mathf.Clamp(m_SteppedDragHandler.currentScrollIndex, 0, m_NumberDisplayedElements - 1);
             // Debug.Log($"{nameof(currentScrollPosition)} {currentScrollPosition}");
 
             // instead of have an absolute overlap depending on a cells width,
