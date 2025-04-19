@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Steft.SimpleCarousel.Drag;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -25,12 +26,21 @@ namespace Steft.SimpleCarousel
 
         [Range(0, 5)] [SerializeField] private float m_NewTargetScrollIndex = 2f;
 
+        private int m_StartPositionIndex = 2;
+
+        private ISmoothDragProvider m_SmoothDragProvider;
+
 #region Unity Methods
 
 #if UNITY_EDITOR
 
         private void Awake()
         {
+            m_SmoothDragProvider = GetComponent<ISmoothDragProvider>();
+            Debug.Log(m_SmoothDragProvider);
+
+            Application.targetFrameRate = 10;
+
             // TODO this will be refactored as soon as we implement pooling
             if (m_PrefabElement != null)
             {
@@ -70,22 +80,22 @@ namespace Steft.SimpleCarousel
                 }
             }
 
-            m_CurrentScrollIndex = m_NewTargetScrollIndex;
-
             // TODO remove from OnValidate later one
             UpdateLayout();
         }
 
         public void Update()
         {
-            if (!Mathf.Approximately(m_TargetScrollIndex, m_NewTargetScrollIndex))
-            {
-                m_ScrollVelocity    = 0.0001f;
-                m_TargetScrollIndex = m_NewTargetScrollIndex;
-            }
+            // if (!Mathf.Approximately(m_TargetScrollIndex, m_NewTargetScrollIndex))
+            // {
+            //     m_ScrollVelocity    = 0.0001f;
+            //     m_TargetScrollIndex = m_NewTargetScrollIndex;
+            // }
 
             m_CurrentScrollIndex = Mathf.SmoothDamp(
-                m_CurrentScrollIndex, m_TargetScrollIndex, ref m_ScrollVelocity, m_ScrollSmoothTime);
+                m_CurrentScrollIndex, m_TargetScrollIndex, ref m_ScrollVelocity, m_ScrollSmoothTime, 10);
+
+            Debug.Log($"{m_CurrentScrollIndex:F2} to {m_TargetScrollIndex:F2}; {m_ScrollVelocity:F2}");
 
             if (!m_IsDragging && Mathf.Abs(m_ScrollVelocity)          < 0.01f &&
                 Mathf.Abs(m_TargetScrollIndex - m_CurrentScrollIndex) < 0.01f)
@@ -160,21 +170,62 @@ namespace Steft.SimpleCarousel
 
 #region Drag Handlers
 
+        private bool    m_IsDragging;
+        private Vector2 m_DragStartPosition;
+
+        private float m_StartDragScrollIndex;
+
         private float m_CurrentScrollIndex = 2; // 0 based
         private float m_TargetScrollIndex;      // 0 based
+        private float m_ScrollVelocity;
+        private float m_ScrollSensitivity = 10f;
+        private float m_ScrollSmoothTime  = 0.2f;
+
         public void OnBeginDrag(PointerEventData eventData)
         {
-            Debug.Log("OnBeginDrag");
+            if (m_NumberDisplayedElements < 3) return;
+            m_IsDragging = true;
+
+            m_TargetScrollIndex    = m_CurrentScrollIndex;
+            m_StartDragScrollIndex = m_CurrentScrollIndex;
+            m_ScrollVelocity       = 0f;
+        }
+
+        private Vector2 m_LastLocalCursor = Vector2.zero;
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!m_IsDragging || m_NumberDisplayedElements <= 3) return;
+
+            Vector2 localCursor;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    (RectTransform)transform, eventData.position, eventData.pressEventCamera, out localCursor))
+                return;
+
+            float delta = -(localCursor.x - m_LastLocalCursor.x) / ((RectTransform)transform).rect.width;
+
+            // Debug.Log(
+            //     // $"{((RectTransform)transform).rect}, "          +
+            //     $"{nameof(delta)}: {delta}; "                   +
+            //     $"{nameof(m_LastLocalCursor)}: {localCursor}, " +
+            //     $"{nameof(m_LastLocalCursor)}: {m_LastLocalCursor}"
+            // );
+
+            m_TargetScrollIndex +=  delta * m_ScrollSensitivity;
+
+            m_LastLocalCursor = localCursor;
+
+            // m_TargetScrollIndex = m_StartDragScrollIndex + m_SmoothDragProvider.smoothedDelta.x * m_ScrollSensitivity;
+            // Debug.Log($"{nameof(m_TargetScrollIndex)}: {m_TargetScrollIndex}");
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            Debug.Log("OnEndDrag");
-        }
+            m_IsDragging        = false;
+            m_TargetScrollIndex = Mathf.Round(m_TargetScrollIndex);
+            m_TargetScrollIndex = Mathf.Clamp(m_TargetScrollIndex, 0f, m_NumberDisplayedElements - 1);
 
-        public void OnDrag(PointerEventData eventData)
-        {
-            Debug.Log("OnDrag");
+            Debug.Log($"OnEndDrag: {m_TargetScrollIndex}");
         }
 
 #endregion
