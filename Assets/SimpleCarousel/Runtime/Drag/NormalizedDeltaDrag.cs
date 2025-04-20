@@ -71,6 +71,14 @@ namespace Steft.SimpleCarousel.Drag
             targetScrollIndex = currentScrollIndex;
             m_LastLocalCursor = Vector2.zero;
             m_ScrollVelocity  = 0f;
+
+            // we need to initialize LastLocalCursor
+            // to avoid big deltas during the first OnDrag call
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                m_RectTransform,
+                eventData.position,
+                eventData.pressEventCamera,
+                out m_LastLocalCursor);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -93,7 +101,23 @@ namespace Steft.SimpleCarousel.Drag
 
             var smoothedDelta = -normalizedDelta * m_ScrollSensitivity;
             targetScrollIndex += smoothedDelta.x;
-            m_LastLocalCursor =  localCursor;
+
+            // making sure that targetScrollIndex remains in range [0,MaximumScrollIndex]
+            // this way we are able to handle overflow correctly
+
+            if (targetScrollIndex > m_MaximumScrollIndex)
+            {
+                targetScrollIndex  -= m_MaximumScrollIndex;
+                currentScrollIndex -= m_MaximumScrollIndex;
+            }
+
+            if (targetScrollIndex < 0)
+            {
+                targetScrollIndex  += m_MaximumScrollIndex;
+                currentScrollIndex += m_MaximumScrollIndex;
+            }
+
+            m_LastLocalCursor = localCursor;
         }
 
         public void OnEndDrag(PointerEventData eventData)
