@@ -190,6 +190,23 @@ namespace Steft.SimpleCarousel
             for (int i = 0; i < m_CarouselCells.Length; i++)
             {
                 m_CarouselCells[i].offsetFromCenter = m_CarouselCells[i].carouselIndex - currentScrollIndex;
+
+                // detecting overflow: cell is outside the visible range
+                if (m_CarouselCells[i].offsetFromCenterAbs > depth)
+                {
+                    // shift overflowed cell to left or right?
+                    if (m_CarouselCells[i].offsetFromCenter > 0)
+                    {
+                        m_CarouselCells[i].offsetFromCenter =
+                            m_CarouselCells[i].carouselIndex - m_DisplayedElements - currentScrollIndex;
+                    }
+                    else
+                    {
+                        m_CarouselCells[i].offsetFromCenter =
+                            m_CarouselCells[i].carouselIndex + m_DisplayedElements - currentScrollIndex;
+                    }
+                }
+
                 m_CarouselCellLayoutHandler.UpdateLayout(m_CarouselCells[i]);
             }
 
