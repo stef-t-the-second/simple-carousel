@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Steft.SimpleCarousel.Drag;
 using Steft.SimpleCarousel.Layout;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Steft.SimpleCarousel
@@ -15,17 +13,44 @@ namespace Steft.SimpleCarousel
     {
         // TODO add tooltip attributes to all sfields
 
-        // TODO do we need this to be an odd number? OnValidate: If even; +1?
-        [Min(1), SerializeField] private int m_NumberDisplayedElements = 3;
-
         [SerializeField] private GameObject m_PrefabElement;
+
+        [Min(3), SerializeField] private int m_DisplayedElements = 3;
+
+        [SerializeField] private int m_StartScrollPosition = 3; // index = position - 1
 
         private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
-        private int m_StartPositionIndex = 2;
-
         private ISteppedSmoothDragHandler                      m_SteppedDragHandler;
         private ICarouselCellLayoutHandler<SimpleCarouselCell> m_CarouselCellLayoutHandler;
+
+        public int displayedElements
+        {
+            get => m_DisplayedElements;
+            set
+            {
+                // constraints:
+                // - minimum is 3
+                // - must be an odd number
+
+                if (value < 3)
+                {
+                    m_DisplayedElements = 3;
+                    return;
+                }
+
+                if (value % 2 == 0)
+                {
+                    // minimum even number is 4
+                    m_DisplayedElements = value - 1;
+                    return;
+                }
+
+                m_DisplayedElements = value;
+            }
+        }
+
+        public int depth => (m_DisplayedElements - 1) / 2;
 
 #region Unity Methods
 
@@ -35,7 +60,7 @@ namespace Steft.SimpleCarousel
         {
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
             Debug.Log(m_SteppedDragHandler);
-            m_SteppedDragHandler.Init(m_StartPositionIndex, m_NumberDisplayedElements - 1);
+            m_SteppedDragHandler.Init(m_StartScrollPosition - 1, m_DisplayedElements - 1);
 
             m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<SimpleCarouselCell>>();
             Debug.Log(m_CarouselCellLayoutHandler);
@@ -55,19 +80,19 @@ namespace Steft.SimpleCarousel
                     return;
                 }
 
-                if (transform.childCount   != m_NumberDisplayedElements ||
-                    m_CarouselCells.Length != m_NumberDisplayedElements)
+                if (transform.childCount   != m_DisplayedElements ||
+                    m_CarouselCells.Length != m_DisplayedElements)
                 {
                     foreach (Transform child in transform)
                     {
                         Destroy(child.gameObject);
                     }
 
-                    m_CarouselCells = new SimpleCarouselCell[m_NumberDisplayedElements];
+                    m_CarouselCells = new SimpleCarouselCell[m_DisplayedElements];
 
                     var prefabRectTransform = m_PrefabElement.transform as RectTransform;
 
-                    for (int i = 0; i < m_NumberDisplayedElements; i++)
+                    for (int i = 0; i < m_DisplayedElements; i++)
                     {
                         // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
                         var prefabInstance =
@@ -86,7 +111,7 @@ namespace Steft.SimpleCarousel
             }
 
             // TODO remove from OnValidate later one
-            UpdateLayout(m_StartPositionIndex);
+            UpdateLayout(m_StartScrollPosition);
         }
 
         public void Update()
@@ -189,7 +214,7 @@ namespace Steft.SimpleCarousel
             if (Application.isPlaying)
                 UpdateLayout(m_SteppedDragHandler.currentScrollIndex);
             else
-                UpdateLayout(m_StartPositionIndex);
+                UpdateLayout(m_StartScrollPosition);
         }
 
         public void SetLayoutVertical()
