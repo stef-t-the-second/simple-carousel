@@ -111,12 +111,12 @@ namespace Steft.SimpleCarousel
             }
 
             // TODO remove from OnValidate later one
-            UpdateLayout(m_StartScrollPosition);
+            UpdateCells(m_StartScrollPosition);
         }
 
         public void Update()
         {
-            UpdateLayout(m_SteppedDragHandler.currentScrollIndex);
+            UpdateCells(m_SteppedDragHandler.currentScrollIndex);
         }
 
         // private void OnValidate()
@@ -182,7 +182,7 @@ namespace Steft.SimpleCarousel
 
 #region Layout Group
 
-        private void UpdateLayout(float currentScrollIndex)
+        private void UpdateCells(float currentScrollIndex)
         {
             if (transform.childCount == 0)
                 return;
@@ -229,9 +229,9 @@ namespace Steft.SimpleCarousel
             // note that SetLayoutHorizontal is called BEFORE SetLayoutVertical by the auto layout system
 
             if (Application.isPlaying)
-                UpdateLayout(m_SteppedDragHandler.currentScrollIndex);
+                UpdateCells(m_SteppedDragHandler.currentScrollIndex);
             else
-                UpdateLayout(m_StartScrollPosition);
+                UpdateCells(m_StartScrollPosition);
         }
 
         public void SetLayoutVertical()
