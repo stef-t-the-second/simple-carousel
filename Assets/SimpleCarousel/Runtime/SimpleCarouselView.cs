@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Steft.SimpleCarousel.Drag;
+using Steft.SimpleCarousel.Layout;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,15 +18,14 @@ namespace Steft.SimpleCarousel
         // TODO do we need this to be an odd number? OnValidate: If even; +1?
         [Min(1), SerializeField] private int m_NumberDisplayedElements = 3;
 
-        [Range(0.1f, 0.4f)] private float m_Overlap = 0.2f; // relative
-
         [SerializeField] private GameObject m_PrefabElement;
 
         private SimpleCarouselCell[] m_CarouselCells = Array.Empty<SimpleCarouselCell>();
 
         private int m_StartPositionIndex = 2;
 
-        private ISteppedSmoothDragHandler m_SteppedDragHandler;
+        private ISteppedSmoothDragHandler                      m_SteppedDragHandler;
+        private ICarouselCellLayoutHandler<SimpleCarouselCell> m_CarouselCellLayoutHandler;
 
 #region Unity Methods
 
@@ -36,6 +36,9 @@ namespace Steft.SimpleCarousel
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
             Debug.Log(m_SteppedDragHandler);
             m_SteppedDragHandler.maximumScrollIndex = m_NumberDisplayedElements - 1;
+
+            m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<SimpleCarouselCell>>();
+            Debug.Log(m_CarouselCellLayoutHandler);
 
             Application.targetFrameRate = 10;
 
@@ -62,6 +65,8 @@ namespace Steft.SimpleCarousel
 
                     m_CarouselCells = new SimpleCarouselCell[m_NumberDisplayedElements];
 
+                    var prefabRectTransform = m_PrefabElement.transform as RectTransform;
+
                     for (int i = 0; i < m_NumberDisplayedElements; i++)
                     {
                         // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
@@ -73,19 +78,20 @@ namespace Steft.SimpleCarousel
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
                         // prefabInstance.hideFlags = HideFlags.DontSave;
-                        m_CarouselCells[i] = new SimpleCarouselCell(i, rectTransform);
+                        m_CarouselCells[i] = new SimpleCarouselCell(
+                            i, rectTransform,
+                            prefabRectTransform.rect.width, prefabRectTransform.rect.height);
                     }
                 }
             }
 
             // TODO remove from OnValidate later one
-            UpdateLayout();
+            UpdateLayout(m_StartPositionIndex);
         }
 
         public void Update()
         {
-            // TODO grab "layout interface" and pass ISteppedSmoothDragHandler.currentScrollIndex into the UpdateLayout method
-            UpdateLayout();
+            UpdateLayout(m_SteppedDragHandler.currentScrollIndex);
         }
 
         // private void OnValidate()
@@ -151,116 +157,44 @@ namespace Steft.SimpleCarousel
 
 #region Layout Group
 
-        private void UpdateLayout()
+        private void UpdateLayout(float currentScrollIndex)
         {
-            // TODO double check that "lossyScale" is used correctly in the following
-            // TODO add support to immediately snap to specific index or smooth scroll to it
-            //      (isn't this already controlled by "CurrentScrollIndex"?)
-
             if (transform.childCount == 0)
                 return;
 
-            float currentScrollPosition =
-                Mathf.Clamp(m_SteppedDragHandler.currentScrollIndex, 0, m_NumberDisplayedElements - 1);
-            // Debug.Log($"{nameof(currentScrollPosition)} {currentScrollPosition}");
-
-            // instead of have an absolute overlap depending on a cells width,
-            // we may implement an overlap depending on the orthogonal size of a cell on screen
-            // to implement this idea, we must consider the rotation of a cell, which changes the occupied pixels on screen
-            float relativeOverlap = 0.2f;
-            float neighbourScale = 0.8f;
-            float rotationStep = 20;
-            float positionStep = 80;
-            float centerWidthWorld =
-                ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x;
-            float centerHeightWorld =
-                ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y;
-            float neighbourWidthWorld =
-                ((RectTransform)m_PrefabElement.transform).rect.width * transform.lossyScale.x * neighbourScale;
-            float neighbourHeightWorld =
-                ((RectTransform)m_PrefabElement.transform).rect.height * transform.lossyScale.y * neighbourScale;
-
-            var offsetsToTransforms = new List<(int offsetFromCenter, RectTransform rectTransform)>();
-            foreach (var cell in m_CarouselCells)
+            for (int i = 0; i < m_CarouselCells.Length; i++)
             {
-                int cellIndex = cell.carouselIndex;
-                float offsetFromCenter = cellIndex - currentScrollPosition;
-                float offsetFromCenterAbs = Mathf.Abs(offsetFromCenter);
-                offsetsToTransforms.Add((Mathf.RoundToInt(offsetFromCenterAbs), cell.rectTransform));
-
-                float posX, posY, posZ, rotY;
-                if (Mathf.Approximately(offsetFromCenter, 0))
-                {
-                    cell.rectTransform.localScale = Vector3.one;
-
-                    posX = 0;
-                    posY = 0;
-                    posZ = 0;
-                    rotY = 0;
-                }
-                else
-                {
-                    int leftOrRight = offsetFromCenter > 0 ? 1 : -1;
-
-                    float scale = offsetFromCenterAbs < 1
-                        // immediate neighbours of center require transition of scale
-                        ? Mathf.Lerp(1f, neighbourScale, offsetFromCenterAbs)
-                        : neighbourScale;
-
-                    cell.rectTransform.localScale = Vector3.one * scale;
-                    float currentNeighbourWidthWorld =
-                        cell.rectTransform.rect.width * cell.rectTransform.lossyScale.x;
-
-                    posX =
-                    (
-                        // for example for center and left neighbour:
-                        // right edge of the neighbour will align with left edge of the center
-                        (centerWidthWorld + currentNeighbourWidthWorld) / 2 +
-
-                        // in which layer (how far out) this cell is
-                        currentNeighbourWidthWorld * (offsetFromCenterAbs - 1)
-
-                        //
-                        - (currentNeighbourWidthWorld * relativeOverlap *
-                           // more overlap the further out we are
-                           offsetFromCenterAbs * offsetFromCenterAbs)
-                    ) * leftOrRight;
-
-                    posY = 0;
-                    posZ = positionStep *
-                           // further back the further out we are
-                           offsetFromCenterAbs * offsetFromCenterAbs;
-                    rotY = -rotationStep * offsetFromCenter;
-                }
-
-                cell.rectTransform.localPosition = new Vector3(posX, posY, posZ);
-                cell.rectTransform.localRotation = Quaternion.Euler(0, rotY, 0);
+                m_CarouselCells[i].offsetFromCenter = m_CarouselCells[i].carouselIndex - currentScrollIndex;
+                m_CarouselCellLayoutHandler.UpdateLayout(m_CarouselCells[i]);
             }
 
             // sibling order determines render order
             // center is considered the first layer; its neighbours the second layer, etc.
             // last sibling is rendered last; hence the last sibling is ultimately in front
             // TODO maybe we can find a better way to solve this
-            var offsetsToTransformsOrdered = offsetsToTransforms
-                .OrderBy(t => t.offsetFromCenter)
+            var cellsOrderedByOffset = m_CarouselCells
+                .OrderBy(t => t.offsetFromCenterAbs)
                 .ToArray();
 
-            for (int i = 0; i < offsetsToTransformsOrdered.Length; i++)
+            for (int i = 0; i < cellsOrderedByOffset.Length; i++)
             {
-                var rectTransform = offsetsToTransformsOrdered[i].rectTransform;
-                rectTransform.SetSiblingIndex(offsetsToTransformsOrdered.Length - 1 - i);
+                cellsOrderedByOffset[i].rectTransform.SetSiblingIndex(cellsOrderedByOffset.Length - 1 - i);
             }
         }
 
         public void SetLayoutHorizontal()
         {
-            UpdateLayout();
+            // note that SetLayoutHorizontal is called BEFORE SetLayoutVertical by the auto layout system
+
+            if (Application.isPlaying)
+                UpdateLayout(m_SteppedDragHandler.currentScrollIndex);
+            else
+                UpdateLayout(m_StartPositionIndex);
         }
 
         public void SetLayoutVertical()
         {
             // note that SetLayoutVertical is called AFTER SetLayoutHorizontal by the auto layout system
-            Debug.Log("SetLayoutVertical");
         }
 
 #endregion
