@@ -50,7 +50,9 @@ namespace Steft.SimpleCarousel
             }
         }
 
-        public int depth => (m_DisplayedElements - 1) / 2;
+        private int depth => (poolSize - 1) / 2;
+
+        private int poolSize => m_DisplayedElements + 2;
 
 #region Unity Methods
 
@@ -60,7 +62,7 @@ namespace Steft.SimpleCarousel
         {
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
             Debug.Log(m_SteppedDragHandler);
-            m_SteppedDragHandler.Init(m_StartScrollPosition - 1, m_DisplayedElements - 1);
+            m_SteppedDragHandler.Init(m_StartScrollPosition - 1, poolSize - 1);
 
             m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<SimpleCarouselCell>>();
             Debug.Log(m_CarouselCellLayoutHandler);
@@ -80,19 +82,19 @@ namespace Steft.SimpleCarousel
                     return;
                 }
 
-                if (transform.childCount   != m_DisplayedElements ||
-                    m_CarouselCells.Length != m_DisplayedElements)
+                if (transform.childCount   != poolSize ||
+                    m_CarouselCells.Length != poolSize)
                 {
                     foreach (Transform child in transform)
                     {
                         Destroy(child.gameObject);
                     }
 
-                    m_CarouselCells = new SimpleCarouselCell[m_DisplayedElements];
+                    m_CarouselCells = new SimpleCarouselCell[poolSize];
 
                     var prefabRectTransform = m_PrefabElement.transform as RectTransform;
 
-                    for (int i = 0; i < m_DisplayedElements; i++)
+                    for (int i = 0; i < poolSize; i++)
                     {
                         // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
                         var prefabInstance =
@@ -198,12 +200,12 @@ namespace Steft.SimpleCarousel
                     if (m_CarouselCells[i].offsetFromCenter > 0)
                     {
                         m_CarouselCells[i].offsetFromCenter =
-                            m_CarouselCells[i].carouselIndex - m_DisplayedElements - currentScrollIndex;
+                            m_CarouselCells[i].carouselIndex - m_CarouselCells.Length - currentScrollIndex;
                     }
                     else
                     {
                         m_CarouselCells[i].offsetFromCenter =
-                            m_CarouselCells[i].carouselIndex + m_DisplayedElements - currentScrollIndex;
+                            m_CarouselCells[i].carouselIndex + m_CarouselCells.Length - currentScrollIndex;
                     }
                 }
 
