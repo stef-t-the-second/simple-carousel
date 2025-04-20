@@ -35,7 +35,7 @@ namespace Steft.SimpleCarousel
         {
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
             Debug.Log(m_SteppedDragHandler);
-            m_SteppedDragHandler.maximumScrollIndex = m_NumberDisplayedElements - 1;
+            m_SteppedDragHandler.Init(m_StartPositionIndex, m_NumberDisplayedElements - 1);
 
             m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<SimpleCarouselCell>>();
             Debug.Log(m_CarouselCellLayoutHandler);

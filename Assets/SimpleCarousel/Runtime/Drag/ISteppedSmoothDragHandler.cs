@@ -7,7 +7,7 @@ namespace Steft.SimpleCarousel.Drag
     //      parts of "SimpleCarouselView.Update" needs to migrated to "NormalizedDrag.Update"
     public interface ISteppedSmoothDragHandler : IBeginDragHandler, IEndDragHandler, IDragHandler
     {
-        public float maximumScrollIndex { get; set; }
+        void Init(float startScrollIndex, float maximumScrollIndex);
 
         public float targetScrollIndex { get; }
 

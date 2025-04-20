@@ -15,31 +15,30 @@ namespace Steft.SimpleCarousel.Drag
         private float         m_ScrollVelocity;
         private float         m_MaximumScrollIndex = 2f;
 
-        public float maximumScrollIndex
-        {
-            get => m_MaximumScrollIndex;
-            set
-            {
-                if (value < k_MinMaximumScrollIndex)
-                {
-                    Debug.LogWarning(
-                        $"'{value}' too small for '{nameof(maximumScrollIndex)}'. " +
-                        $"Using fallback '{k_MinMaximumScrollIndex}'.");
-
-                    m_MaximumScrollIndex = k_MinMaximumScrollIndex;
-                }
-                else
-                {
-                    m_MaximumScrollIndex = value;
-                }
-            }
-        }
-
         public float targetScrollIndex { get; private set; }
 
         public float currentScrollIndex { get; private set; }
 
         public bool isDragging { get; private set; }
+
+        public void Init(float startScrollIndex, float maximumScrollIndex)
+        {
+            currentScrollIndex = startScrollIndex;
+            targetScrollIndex  = startScrollIndex;
+
+            if (maximumScrollIndex < k_MinMaximumScrollIndex)
+            {
+                Debug.LogWarning(
+                    $"'{maximumScrollIndex}' too small for '{nameof(maximumScrollIndex)}'. " +
+                    $"Using fallback '{k_MinMaximumScrollIndex}'.");
+
+                m_MaximumScrollIndex = k_MinMaximumScrollIndex;
+            }
+            else
+            {
+                m_MaximumScrollIndex = maximumScrollIndex;
+            }
+        }
 
         private void Awake()
         {
