@@ -9,7 +9,7 @@ namespace Steft.SimpleCarousel
 {
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
-    public class SimpleCarouselView : MonoBehaviour, ILayoutGroup
+    public class SimpleCarouselView : MonoBehaviour
     {
         // TODO add tooltip attributes to all sfields
 
@@ -74,7 +74,7 @@ namespace Steft.SimpleCarousel
             // TODO this will be refactored as soon as we implement pooling
             if (m_PrefabElement != null)
             {
-                Debug.Log("OnValidate");
+                Debug.Log("Awake");
 
                 // is it a GameObject reference of an instance in the scene?
                 // is it a Prefab reference?
@@ -108,8 +108,7 @@ namespace Steft.SimpleCarousel
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
                         // prefabInstance.hideFlags = HideFlags.DontSave;
                         m_CarouselCells[i] = new SimpleCarouselCell(
-                            i, rectTransform,
-                            prefabRectTransform.rect.width, prefabRectTransform.rect.height);
+                            rectTransform, prefabRectTransform.rect.width, prefabRectTransform.rect.height);
                     }
                 }
             }
@@ -184,16 +183,14 @@ namespace Steft.SimpleCarousel
 
 #endregion
 
-#region Layout Group
-
         private void UpdateCells(float currentScrollIndex)
         {
-            if (transform.childCount == 0)
+            if (transform.childCount == 0 || m_CarouselCells.Length == 0)
                 return;
 
             for (int i = 0; i < m_CarouselCells.Length; i++)
             {
-                m_CarouselCells[i].offsetFromCenter = m_CarouselCells[i].carouselIndex - currentScrollIndex;
+                m_CarouselCells[i].offsetFromCenter = i - currentScrollIndex;
 
                 // detecting overflow: cell is outside the visible range
                 if (m_CarouselCells[i].offsetFromCenterAbs > depthMinusMargin)
@@ -201,17 +198,15 @@ namespace Steft.SimpleCarousel
                     // shift overflowed cell to left or right?
                     if (m_CarouselCells[i].offsetFromCenter > 0)
                     {
-                        m_CarouselCells[i].offsetFromCenter =
-                            m_CarouselCells[i].carouselIndex - m_CarouselCells.Length - currentScrollIndex;
+                        m_CarouselCells[i].offsetFromCenter = i - m_CarouselCells.Length - currentScrollIndex;
                     }
                     else
                     {
-                        m_CarouselCells[i].offsetFromCenter =
-                            m_CarouselCells[i].carouselIndex + m_CarouselCells.Length - currentScrollIndex;
+                        m_CarouselCells[i].offsetFromCenter = i + m_CarouselCells.Length - currentScrollIndex;
                     }
                 }
 
-                m_CarouselCells[i].rectTransform.gameObject.SetActive(
+                m_CarouselCells[i].gameObject.SetActive(
                     m_CarouselCells[i].offsetFromCenterAbs < depthMinusMargin
                 );
 
@@ -231,22 +226,5 @@ namespace Steft.SimpleCarousel
                 cellsOrderedByOffset[i].rectTransform.SetSiblingIndex(cellsOrderedByOffset.Length - 1 - i);
             }
         }
-
-        public void SetLayoutHorizontal()
-        {
-            // note that SetLayoutHorizontal is called BEFORE SetLayoutVertical by the auto layout system
-
-            if (Application.isPlaying)
-                UpdateCells(m_SteppedDragHandler.currentScrollIndex);
-            else
-                UpdateCells(m_StartScrollPosition);
-        }
-
-        public void SetLayoutVertical()
-        {
-            // note that SetLayoutVertical is called AFTER SetLayoutHorizontal by the auto layout system
-        }
-
-#endregion
     }
 }

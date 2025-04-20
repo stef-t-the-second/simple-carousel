@@ -7,23 +7,18 @@ namespace Steft.SimpleCarousel
     {
         private float m_OffsetFromCenter;
 
-        public SimpleCarouselCell(int carouselIndex, RectTransform rectTransform, float width, float height)
+        public SimpleCarouselCell(RectTransform rectTransform, float width, float height)
         {
-            if (carouselIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(carouselIndex));
-
             if (rectTransform == null)
                 throw new ArgumentNullException(nameof(rectTransform));
 
-            this.carouselIndex  = carouselIndex;
             this.rectTransform  = rectTransform;
+            gameObject          = rectTransform.gameObject;
             this.width          = width;
             this.height         = height;
             m_OffsetFromCenter  = 0;
             offsetFromCenterAbs = 0;
         }
-
-        public int carouselIndex { get; }
 
         public float offsetFromCenter
         {
@@ -38,6 +33,8 @@ namespace Steft.SimpleCarousel
         public float offsetFromCenterAbs { get; private set; }
 
         public RectTransform rectTransform { get; }
+
+        public GameObject gameObject { get; }
 
         public float width { get; }
 
