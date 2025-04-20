@@ -50,6 +50,8 @@ namespace Steft.SimpleCarousel
             }
         }
 
+        private float depthMinusMargin => depth - 0.5f;
+
         private int depth => (poolSize - 1) / 2;
 
         private int poolSize => m_DisplayedElements + 2;
@@ -194,7 +196,7 @@ namespace Steft.SimpleCarousel
                 m_CarouselCells[i].offsetFromCenter = m_CarouselCells[i].carouselIndex - currentScrollIndex;
 
                 // detecting overflow: cell is outside the visible range
-                if (m_CarouselCells[i].offsetFromCenterAbs > depth)
+                if (m_CarouselCells[i].offsetFromCenterAbs > depthMinusMargin)
                 {
                     // shift overflowed cell to left or right?
                     if (m_CarouselCells[i].offsetFromCenter > 0)
