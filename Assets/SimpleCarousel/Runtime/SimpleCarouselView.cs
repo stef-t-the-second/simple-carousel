@@ -211,6 +211,10 @@ namespace Steft.SimpleCarousel
                     }
                 }
 
+                m_CarouselCells[i].rectTransform.gameObject.SetActive(
+                    m_CarouselCells[i].offsetFromCenterAbs < depthMinusMargin
+                );
+
                 m_CarouselCellLayoutHandler.UpdateLayout(m_CarouselCells[i]);
             }
 
