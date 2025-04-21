@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Steft.SimpleCarousel.Samples
 {
     [Serializable]
-    internal class ProduceData
+    internal class ProduceData : ICarouselData
     {
         [SerializeField]            private string m_Name;
         [TextArea] [SerializeField] private string m_Description;

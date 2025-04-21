@@ -96,7 +96,7 @@ namespace Steft.SimpleCarousel
                         var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
                         var rectTransform = prefabInstance.transform as RectTransform;
                         rectTransform.ResetToMiddleCenter();
-                        rectTransform.gameObject.name += " (" + i + ")";
+                        rectTransform.gameObject.name = $"[{i:000}] Element '{m_Data[i].name}'";
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
                         // prefabInstance.hideFlags = HideFlags.DontSave;

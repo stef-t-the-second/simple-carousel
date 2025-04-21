@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace Steft.SimpleCarousel
 {
-    public abstract class CarouselCell<TData> : MonoBehaviour, ICarouselCell<TData>
-        where TData : class
+    public abstract class CarouselCell<TData> : MonoBehaviour, ICarouselCell<TData> where TData : class, ICarouselData
     {
         private float         m_OffsetFromCenter;
         private RectTransform m_RectTransform;
