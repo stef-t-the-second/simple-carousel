@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15330a71ba86476e9c9914650d559834, type: 3}
+  m_Name: Produce Data Container
+  m_EditorClassIdentifier: 
+  m_Data:
+  - m_Name: Banana
+    m_Description: A widely consumed tropical fruit known for its convenient peel,
+      soft texture, and potassium content.
+    m_ImageName: banana
+  - m_Name: Apple
+    m_Description: A crisp, versatile fruit grown globally in many varieties, eaten
+      fresh or used in cooking and baking.
+    m_ImageName: apple
+  - m_Name: Orange
+    m_Description: A popular citrus fruit valued for its refreshing juice and high
+      concentration of Vitamin C.
+    m_ImageName: orange
+  - m_Name: Grape
+    m_Description: Small, sweet fruits grown in bunches, enjoyed fresh as snacks
+      or processed into wine, juice, and raisins.
+    m_ImageName: grape
+  - m_Name: Strawberry
+    m_Description: A sweet, red, heart-shaped berry favoured fresh, in desserts,
+      jams, and flavourings.
+    m_ImageName: strawberry
+  - m_Name: Potato
+    m_Description: A starchy tuber grown underground, serving as a versatile staple
+      food cooked in countless ways.
+    m_ImageName: potato
+  - m_Name: Tomato
+    m_Description: A globally popular fruit used culinarily as a vegetable, essential
+      in sauces, salads, and many cooked dishes.
+    m_ImageName: tomato
+  - m_Name: Onion
+    m_Description: A pungent bulb vegetable that forms the flavour base for a vast
+      array of savoury dishes worldwide.
+    m_ImageName: onion
+  - m_Name: Lettuce
+    m_Description: A leafy green vegetable most commonly eaten raw as the primary
+      ingredient in salads.
+    m_ImageName: lettuce
+  - m_Name: Carrot
+    m_Description: A crunchy, sweet root vegetable, typically orange, known for being
+      rich in Vitamin A.
+    m_ImageName: carrot

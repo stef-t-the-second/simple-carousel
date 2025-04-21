@@ -156,8 +156,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 180, y: -40.02735}
-  m_SizeDelta: {x: 360, y: 80.0547}
+  m_AnchoredPosition: {x: 180, y: -21.663826}
+  m_SizeDelta: {x: 360, y: 43.327652}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &468713618
 MonoBehaviour:
@@ -181,7 +181,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 16
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 1
@@ -272,8 +272,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 180, y: -118.582054}
-  m_SizeDelta: {x: 360, y: 77.0547}
+  m_AnchoredPosition: {x: 180, y: -60.991478}
+  m_SizeDelta: {x: 360, y: 35.327652}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &682387077
 MonoBehaviour:
@@ -589,8 +589,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -61.4453}
-  m_SizeDelta: {x: -40, y: -162.8906}
+  m_AnchoredPosition: {x: 0, y: -100.67235}
+  m_SizeDelta: {x: -40, y: -241.3447}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &774999178
 MonoBehaviour:
@@ -925,7 +925,48 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_CellPrefab: {fileID: 927257489463021833}
-  m_DisplayedElements: 3
+  m_Data:
+  - m_Name: Banana
+    m_Description: A widely consumed tropical fruit known for its convenient peel,
+      soft texture, and potassium content.
+    m_ImageName: banana
+  - m_Name: Apple
+    m_Description: A crisp, versatile fruit grown globally in many varieties, eaten
+      fresh or used in cooking and baking.
+    m_ImageName: apple
+  - m_Name: Orange
+    m_Description: A popular citrus fruit valued for its refreshing juice and high
+      concentration of Vitamin C.
+    m_ImageName: orange
+  - m_Name: Grape
+    m_Description: Small, sweet fruits grown in bunches, enjoyed fresh as snacks
+      or processed into wine, juice, and raisins.
+    m_ImageName: grape
+  - m_Name: Strawberry
+    m_Description: A sweet, red, heart-shaped berry favoured fresh, in desserts,
+      jams, and flavourings.
+    m_ImageName: strawberry
+  - m_Name: Potato
+    m_Description: A starchy tuber grown underground, serving as a versatile staple
+      food cooked in countless ways.
+    m_ImageName: potato
+  - m_Name: Tomato
+    m_Description: A globally popular fruit used culinarily as a vegetable, essential
+      in sauces, salads, and many cooked dishes.
+    m_ImageName: tomato
+  - m_Name: Onion
+    m_Description: A pungent bulb vegetable that forms the flavour base for a vast
+      array of savoury dishes worldwide.
+    m_ImageName: onion
+  - m_Name: Lettuce
+    m_Description: A leafy green vegetable most commonly eaten raw as the primary
+      ingredient in salads.
+    m_ImageName: lettuce
+  - m_Name: Carrot
+    m_Description: A crunchy, sweet root vegetable, typically orange, known for being
+      rich in Vitamin A.
+    m_ImageName: carrot
+  m_DisplayedElements: 5
   m_StartScrollPosition: 3
 --- !u!1 &1835485328
 GameObject:
@@ -962,7 +1003,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: -30}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 180, y: 180}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1835485330
 MonoBehaviour:
@@ -1089,24 +1130,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5307d3d35fed4a13b35864839f49ce3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Image: {fileID: 0}
-  m_TextName: {fileID: 0}
-  m_TextDescription: {fileID: 0}
---- !u!114 &1463238945745482845
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6589701989229742721}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5307d3d35fed4a13b35864839f49ce3b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Image: {fileID: 0}
-  m_TextName: {fileID: 0}
-  m_TextDescription: {fileID: 0}
+  m_Image: {fileID: 1835485330}
+  m_TextName: {fileID: 468713618}
+  m_TextDescription: {fileID: 682387077}
 --- !u!1 &6589701989229742721
 GameObject:
   m_ObjectHideFlags: 0
@@ -1117,7 +1143,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6787907093479867187}
   - component: {fileID: 927257489463021833}
-  - component: {fileID: 1463238945745482845}
   m_Layer: 5
   m_Name: Produce Cell
   m_TagString: Untagged

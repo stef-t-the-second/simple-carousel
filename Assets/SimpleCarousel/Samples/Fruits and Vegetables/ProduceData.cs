@@ -4,11 +4,11 @@ using UnityEngine;
 namespace Steft.SimpleCarousel.Samples
 {
     [Serializable]
-    public class ProduceData
+    internal class ProduceData
     {
-        [SerializeField] private string m_ImageName;
-        [SerializeField] private string m_Name;
-        [SerializeField] private string m_Description;
+        [SerializeField]            private string m_Name;
+        [TextArea] [SerializeField] private string m_Description;
+        [SerializeField]            private string m_ImageName;
 
         public ProduceData(string imageName, string name, string description)
         {
