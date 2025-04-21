@@ -15,14 +15,22 @@ namespace Steft.SimpleCarousel
 
         [SerializeField] private CarouselCell<TData> m_CellPrefab;
 
+        [SerializeField] private TData[] m_Data;
+
         [Min(3), SerializeField] private int m_DisplayedElements = 3;
 
-        [SerializeField] private int m_StartScrollPosition = 3; // index = position - 1
+        [SerializeField] private int m_StartScrollPosition = 2; // index = position - 1
 
         private CarouselCell<TData>[] m_CarouselCells = Array.Empty<CarouselCell<TData>>();
 
         private ISteppedSmoothDragHandler                 m_SteppedDragHandler;
         private ICarouselCellLayoutHandler<ICarouselCell> m_CarouselCellLayoutHandler;
+
+        public TData[] data
+        {
+            get => m_Data;
+            set => m_Data = value ?? Array.Empty<TData>();
+        }
 
         public int displayedElements
         {
@@ -92,7 +100,8 @@ namespace Steft.SimpleCarousel
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
                         // prefabInstance.hideFlags = HideFlags.DontSave;
-                        m_CarouselCells[i] = prefabInstance.GetComponent<CarouselCell<TData>>();
+                        m_CarouselCells[i]      = prefabInstance.GetComponent<CarouselCell<TData>>();
+                        m_CarouselCells[i].data = m_Data[i];
                     }
                 }
             }
