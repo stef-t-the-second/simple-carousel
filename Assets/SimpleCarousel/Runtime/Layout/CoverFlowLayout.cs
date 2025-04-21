@@ -6,7 +6,7 @@ namespace Steft.SimpleCarousel.Layout
     ///
     /// </summary>
     /// https://en.wikipedia.org/wiki/Cover_Flow
-    public class CoverFlowLayout : MonoBehaviour, ICarouselCellLayoutHandler<SimpleCarouselCell>
+    public class CoverFlowLayout : MonoBehaviour, ICarouselCellLayoutHandler<CarouselCell>
     {
         [Range(0.05f, 0.4f)] [SerializeField]
         // instead of have an absolute overlap depending on a cells width,
@@ -20,7 +20,7 @@ namespace Steft.SimpleCarousel.Layout
 
         [Range(10, 200)] [SerializeField] private float m_DepthStep = 80;
 
-        public void UpdateLayout(SimpleCarouselCell cell)
+        public void UpdateLayout(CarouselCell cell)
         {
             float posX, posY, posZ, rotY;
             if (Mathf.Approximately(cell.offsetFromCenter, 0))
@@ -42,19 +42,19 @@ namespace Steft.SimpleCarousel.Layout
                     : m_NeighbourScale;
 
                 cell.rectTransform.localScale = Vector3.one * scale;
-                float currentNeighbourWidthWorld = cell.rectTransform.rect.width;
+                float cellWidth = cell.rectTransform.rect.width;
 
                 posX =
                 (
                     // for example for center and left neighbour:
                     // right edge of the neighbour will align with left edge of the center
-                    (cell.width + currentNeighbourWidthWorld) / 2 +
+                    cellWidth +
 
                     // in which layer (how far out) this cell is
-                    currentNeighbourWidthWorld * (cell.offsetFromCenterAbs - 1)
+                    cellWidth * (cell.offsetFromCenterAbs - 1)
 
                     //
-                    - (currentNeighbourWidthWorld * m_RelativeOverlap *
+                    - (cellWidth * m_RelativeOverlap *
                        // more overlap the further out we are
                        cell.offsetFromCenterAbs * cell.offsetFromCenterAbs)
                 ) * leftOrRight;
