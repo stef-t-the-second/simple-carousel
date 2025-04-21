@@ -9,20 +9,22 @@ namespace Steft.SimpleCarousel
 {
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
-    public class CarouselView<TData> : MonoBehaviour where TData : class
+    public class CarouselView<TData> : MonoBehaviour where TData : class, ICarouselData
     {
+        // TODO cleanup .scene file and remove redundant sfield entries
         // TODO add tooltip attributes to all sfields
 
+        [Min(3), SerializeField] private int m_VisibleElements = 3;
+        [SerializeField]         private int m_StartPosition   = 2; // index = position - 1
+
         [SerializeField] private CarouselCell<TData> m_CellPrefab;
-
-        [SerializeField] private TData[] m_Data;
-
-        [Min(3), SerializeField] private int m_DisplayedElements = 3;
-
-        [SerializeField] private int m_StartScrollPosition = 2; // index = position - 1
+        [SerializeField] private TData[]             m_Data;
 
         private CarouselCell<TData>[] m_CarouselCells = Array.Empty<CarouselCell<TData>>();
 
+        // note we could implement some dependency injection here,
+        // that for example looks for the presence of respective interface implementations on the local GameObject
+        // this has the benefit of throwing these setup related errors already when compiling instead of throwing during runtime
         private ISteppedSmoothDragHandler                 m_SteppedDragHandler;
         private ICarouselCellLayoutHandler<ICarouselCell> m_CarouselCellLayoutHandler;
 
@@ -34,7 +36,7 @@ namespace Steft.SimpleCarousel
 
         public int displayedElements
         {
-            get => m_DisplayedElements;
+            get => m_VisibleElements;
             set
             {
                 // constraints:
@@ -43,18 +45,18 @@ namespace Steft.SimpleCarousel
 
                 if (value < 3)
                 {
-                    m_DisplayedElements = 3;
+                    m_VisibleElements = 3;
                     return;
                 }
 
                 if (value % 2 == 0)
                 {
                     // minimum even number is 4
-                    m_DisplayedElements = value - 1;
+                    m_VisibleElements = value - 1;
                     return;
                 }
 
-                m_DisplayedElements = value;
+                m_VisibleElements = value;
             }
         }
 
@@ -62,18 +64,22 @@ namespace Steft.SimpleCarousel
 
         private int depth => (poolSize - 1) / 2;
 
-        private int poolSize => m_DisplayedElements + 2;
+        private int poolSize => m_VisibleElements + 2;
 
 #region Unity Methods
+
+        private void OnValidate()
+        {
+            // re-assigning will check all constraints defined through the property
+            displayedElements = m_VisibleElements;
+            m_StartPosition   = Mathf.Clamp(m_StartPosition, 0, m_VisibleElements);
+        }
 
         private void Awake()
         {
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
-            Debug.Log(m_SteppedDragHandler);
-            m_SteppedDragHandler.Init(m_StartScrollPosition - 1, poolSize - 1);
-
+            m_SteppedDragHandler.Init(m_StartPosition - 1, poolSize - 1);
             m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
-            Debug.Log(m_CarouselCellLayoutHandler);
 
             // TODO this will be refactored as soon as we implement pooling
             if (m_CellPrefab != null)
@@ -107,7 +113,7 @@ namespace Steft.SimpleCarousel
             }
 
             // TODO remove from OnValidate later one
-            UpdateCells(m_StartScrollPosition);
+            UpdateCells(m_StartPosition);
         }
 
         public void Update()
