@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace Steft.SimpleCarousel.Samples
 {
-    public class ProduceCarouselCell : CarouselCell<ProduceData>
+    internal class ProduceCarouselCell : CarouselCell<ProduceData>
     {
         [SerializeField] private Image m_Image;
         [SerializeField] private Text  m_TextName;
