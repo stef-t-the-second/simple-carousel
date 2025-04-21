@@ -1,10 +1,13 @@
+using System;
 using UnityEngine;
 
 namespace Steft.SimpleCarousel
 {
-    public class CarouselCell : MonoBehaviour
+    public abstract class CarouselCell<TData> : MonoBehaviour, ICarouselCell<TData>
+        where TData : class
     {
-        private float m_OffsetFromCenter;
+        private float         m_OffsetFromCenter;
+        private RectTransform m_RectTransform;
 
         public float offsetFromCenter
         {
@@ -18,6 +21,17 @@ namespace Steft.SimpleCarousel
 
         public float offsetFromCenterAbs { get; private set; }
 
-        public RectTransform rectTransform => transform as RectTransform;
+        public abstract TData data { get; set; }
+
+        public RectTransform rectTransform
+        {
+            get
+            {
+                if (m_RectTransform == null)
+                    m_RectTransform = transform as RectTransform;
+
+                return m_RectTransform;
+            }
+        }
     }
 }

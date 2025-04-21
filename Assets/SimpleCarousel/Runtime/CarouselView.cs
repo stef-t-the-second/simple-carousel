@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Steft.SimpleCarousel.Drag;
 using Steft.SimpleCarousel.Layout;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,20 +9,20 @@ namespace Steft.SimpleCarousel
 {
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
-    public class CarouselView : MonoBehaviour
+    public class CarouselView<TData> : MonoBehaviour where TData : class
     {
         // TODO add tooltip attributes to all sfields
 
-        [SerializeField] private CarouselCell m_CellPrefab;
+        [SerializeField] private CarouselCell<TData> m_CellPrefab;
 
         [Min(3), SerializeField] private int m_DisplayedElements = 3;
 
         [SerializeField] private int m_StartScrollPosition = 3; // index = position - 1
 
-        private CarouselCell[] m_CarouselCells = Array.Empty<CarouselCell>();
+        private CarouselCell<TData>[] m_CarouselCells = Array.Empty<CarouselCell<TData>>();
 
-        private ISteppedSmoothDragHandler                      m_SteppedDragHandler;
-        private ICarouselCellLayoutHandler<CarouselCell> m_CarouselCellLayoutHandler;
+        private ISteppedSmoothDragHandler                 m_SteppedDragHandler;
+        private ICarouselCellLayoutHandler<ICarouselCell> m_CarouselCellLayoutHandler;
 
         public int displayedElements
         {
@@ -59,32 +58,19 @@ namespace Steft.SimpleCarousel
 
 #region Unity Methods
 
-#if UNITY_EDITOR
-
         private void Awake()
         {
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
             Debug.Log(m_SteppedDragHandler);
             m_SteppedDragHandler.Init(m_StartScrollPosition - 1, poolSize - 1);
 
-            m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<CarouselCell>>();
+            m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
             Debug.Log(m_CarouselCellLayoutHandler);
-
-            Application.targetFrameRate = 10;
 
             // TODO this will be refactored as soon as we implement pooling
             if (m_CellPrefab != null)
             {
                 Debug.Log("Awake");
-
-                // is it a GameObject reference of an instance in the scene?
-                // is it a Prefab reference?
-                if (m_CellPrefab.gameObject.scene.IsValid())
-                {
-                    Debug.LogWarning(
-                        $"Prefab reference required, but was GameObject instance: {m_CellPrefab.gameObject.name}");
-                    return;
-                }
 
                 if (transform.childCount   != poolSize ||
                     m_CarouselCells.Length != poolSize)
@@ -94,26 +80,19 @@ namespace Steft.SimpleCarousel
                         Destroy(child.gameObject);
                     }
 
-                    m_CarouselCells = new CarouselCell[poolSize];
-
-                    var prefabRectTransform = m_CellPrefab.transform as RectTransform;
+                    m_CarouselCells = new CarouselCell<TData>[poolSize];
 
                     for (int i = 0; i < poolSize; i++)
                     {
                         // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
-                        var prefabInstance =
-                            (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(m_CellPrefab.gameObject, transform);
+                        var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
                         var rectTransform = prefabInstance.transform as RectTransform;
                         rectTransform.ResetToMiddleCenter();
                         rectTransform.gameObject.name += " (" + i + ")";
-                        if (rectTransform.GetComponentInChildren<TMP_Text>() is var text)
-                        {
-                            text.text = i.ToString();
-                        }
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
                         // prefabInstance.hideFlags = HideFlags.DontSave;
-                        m_CarouselCells[i] = prefabInstance.GetComponent<CarouselCell>();
+                        m_CarouselCells[i] = prefabInstance.GetComponent<CarouselCell<TData>>();
                     }
                 }
             }
@@ -127,6 +106,7 @@ namespace Steft.SimpleCarousel
             UpdateCells(m_SteppedDragHandler.currentScrollIndex);
         }
 
+#if UNITY_EDITOR
         // private void OnValidate()
         // {
         //     // TODO this will be refactored as soon as we implement pooling

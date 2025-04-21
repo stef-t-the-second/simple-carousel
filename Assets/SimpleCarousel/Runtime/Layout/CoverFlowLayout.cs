@@ -6,7 +6,7 @@ namespace Steft.SimpleCarousel.Layout
     ///
     /// </summary>
     /// https://en.wikipedia.org/wiki/Cover_Flow
-    public class CoverFlowLayout : MonoBehaviour, ICarouselCellLayoutHandler<CarouselCell>
+    public class CoverFlowLayout : MonoBehaviour, ICarouselCellLayoutHandler<ICarouselCell>
     {
         [Range(0.05f, 0.4f)] [SerializeField]
         // instead of have an absolute overlap depending on a cells width,
@@ -20,7 +20,7 @@ namespace Steft.SimpleCarousel.Layout
 
         [Range(10, 200)] [SerializeField] private float m_DepthStep = 80;
 
-        public void UpdateLayout(CarouselCell cell)
+        public void UpdateLayout(ICarouselCell cell)
         {
             float posX, posY, posZ, rotY;
             if (Mathf.Approximately(cell.offsetFromCenter, 0))
