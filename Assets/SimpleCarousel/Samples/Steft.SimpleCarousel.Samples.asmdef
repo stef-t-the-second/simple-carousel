@@ -1,0 +1,16 @@
+{
+    "name": "Steft.SimpleCarousel.Samples",
+    "rootNamespace": "Steft.SimpleCarousel.Samples",
+    "references": [
+        "GUID:6e17ee47172244596a3845cbe3b3456d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
