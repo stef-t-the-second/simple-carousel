@@ -1,32 +1,49 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Steft.SimpleCarousel.Drag;
 using Steft.SimpleCarousel.Layout;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Steft.SimpleCarousel
 {
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
-    public class CarouselView<TData> : MonoBehaviour where TData : class, ICarouselData
+    public class CarouselView<TData> : MonoBehaviour, IBeginDragHandler, IEndDragHandler
+        where TData : class, ICarouselData
     {
         // TODO cleanup .scene file and remove redundant sfield entries
         // TODO add tooltip attributes to all sfields
 
         [Min(3), SerializeField] private int m_VisibleElements = 3;
-        [SerializeField]         private int m_StartPosition   = 2; // index = position - 1
 
         [SerializeField] private CarouselCell<TData> m_CellPrefab;
-        [SerializeField] private TData[]             m_Data;
+        [SerializeField] private TData[]             m_Data = Array.Empty<TData>();
 
-        private CarouselCell<TData>[] m_CarouselCells = Array.Empty<CarouselCell<TData>>();
+        private readonly LinkedList<CarouselCell<TData>> m_CarouselCells = new();
 
         // note we could implement some dependency injection here,
         // that for example looks for the presence of respective interface implementations on the local GameObject
         // this has the benefit of throwing these setup related errors already when compiling instead of throwing during runtime
         private ISteppedSmoothDragHandler                 m_SteppedDragHandler;
         private ICarouselCellLayoutHandler<ICarouselCell> m_CarouselCellLayoutHandler;
+
+        private int m_MovingCircularDataIndex;
+
+        private int mappedCircularDataIndex
+        {
+            get
+            {
+                // Double Modulo Trick: ((index % size) + size) % size
+                // 1. index % size: Can be negative if index is negative.
+                // 2. + size: Ensures the value is >= 0 before the final modulo.
+                // 3. % size: Brings the value back into the [0, size - 1] range.
+                int mappedIndex = ((m_MovingCircularDataIndex % data.Length) + data.Length) % data.Length;
+                return mappedIndex;
+            }
+        }
 
         public TData[] data
         {
@@ -72,13 +89,12 @@ namespace Steft.SimpleCarousel
         {
             // re-assigning will check all constraints defined through the property
             displayedElements = m_VisibleElements;
-            m_StartPosition   = Mathf.Clamp(m_StartPosition, 0, m_VisibleElements);
         }
 
         private void Awake()
         {
             m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
-            m_SteppedDragHandler.Init(m_StartPosition - 1, poolSize - 1);
+            m_SteppedDragHandler.Init(depth, poolSize - 1);
             m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
 
             // TODO this will be refactored as soon as we implement pooling
@@ -86,34 +102,40 @@ namespace Steft.SimpleCarousel
             {
                 Debug.Log("Awake");
 
-                if (transform.childCount   != poolSize ||
-                    m_CarouselCells.Length != poolSize)
+                if (transform.childCount != poolSize)
                 {
                     foreach (Transform child in transform)
                     {
                         Destroy(child.gameObject);
                     }
 
-                    m_CarouselCells = new CarouselCell<TData>[poolSize];
+                    m_CarouselCells.Clear();
 
                     for (int i = 0; i < poolSize; i++)
                     {
-                        // TODO is there any way to squash the "SendMessage" warning when instantiating a Prefab?
                         var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
+                        prefabInstance.SetActive(true);
                         var rectTransform = prefabInstance.transform as RectTransform;
+                        if (rectTransform == null)
+                            throw new NullReferenceException($"[{i}] RectTransform is null");
+
                         rectTransform.ResetToMiddleCenter();
-                        rectTransform.gameObject.name = $"[{i:000}] Element '{m_Data[i].name}'";
+                        // rectTransform.gameObject.name = $"[{i:000}] Element '{m_Data[i].name}'";
 
                         // prefabInstance.hideFlags       = HideFlags.NotEditable;
                         // prefabInstance.hideFlags = HideFlags.DontSave;
-                        m_CarouselCells[i]      = prefabInstance.GetComponent<CarouselCell<TData>>();
-                        m_CarouselCells[i].data = m_Data[i];
+                        var carouselCell = prefabInstance.GetComponent<CarouselCell<TData>>();
+                        carouselCell.index  = i   - 1;
+                        prefabInstance.name = "[" + carouselCell.index + "]";
+                        m_CarouselCells.AddLast(carouselCell);
+                        // m_CarouselCells[i]       = prefabInstance.GetComponent<CarouselCell<TData>>();
+                        // m_CarouselCells[i].data  = m_Data[i];
+                        // m_CarouselCells[i].index = i;
                     }
+
+                    UpdateCenterStartIndex();
                 }
             }
-
-            // TODO remove from OnValidate later one
-            UpdateCells(m_StartPosition);
         }
 
         public void Update()
@@ -183,35 +205,136 @@ namespace Steft.SimpleCarousel
 
 #endregion
 
+        private int m_CenterStartIndex;
+
+        private void UpdateCenterStartIndex()
+        {
+            var center = m_CarouselCells.First;
+            for (int i = 0; i < depth; i++)
+            {
+                center = center.Next;
+            }
+
+            m_CenterStartIndex = center.Value.index;
+            Debug.Log($"{nameof(m_CenterStartIndex)}: {m_CenterStartIndex}");
+        }
+
+        public void OnBeginDrag(PointerEventData eventData) => UpdateCenterStartIndex();
+
+        public void OnEndDrag(PointerEventData eventData) => UpdateCenterStartIndex();
+
         private void UpdateCells(float currentScrollIndex)
         {
-            if (transform.childCount == 0 || m_CarouselCells.Length == 0)
+            if (transform.childCount == 0)
                 return;
 
-            for (int i = 0; i < m_CarouselCells.Length; i++)
-            {
-                m_CarouselCells[i].offsetFromCenter = i - currentScrollIndex;
+            // Debug.Log($"{m_SteppedDragHandler.traveledDelta:F2}");
+            var node = m_CarouselCells.First;
+            var first = m_CarouselCells.First;
+            var last = m_CarouselCells.Last;
 
-                // detecting overflow: cell is outside the visible range
-                if (m_CarouselCells[i].offsetFromCenterAbs > depthMinusMargin)
+            while (node != null)
+            {
+                var nextNode = node.Next;
+                node.Value.offsetFromCenter =
+                    node.Value.index - m_CenterStartIndex - m_SteppedDragHandler.traveledDelta;
+
+                // detecting overflow: cell is outside the allowed range
+                if (Mathf.Round(node.Value.offsetFromCenterAbs) > depth)
                 {
-                    // shift overflowed cell to left or right?
-                    if (m_CarouselCells[i].offsetFromCenter > 0)
+                    // shift overflowed cell to left (negative) or right (positive)?
+                    if (node.Value.offsetFromCenter > 0)
                     {
-                        m_CarouselCells[i].offsetFromCenter = i - m_CarouselCells.Length - currentScrollIndex;
+                        Debug.Log($"Shifting {node.Value.index} to front");
+                        // // m_CarouselCells[i].offsetFromCenter = i - m_CarouselCells.Length - currentScrollIndex;
+                        m_CarouselCells.Remove(node);
+                        m_CarouselCells.AddFirst(node);
+                        node.Value.index = first.Value.index - 1;
                     }
                     else
                     {
-                        m_CarouselCells[i].offsetFromCenter = i + m_CarouselCells.Length - currentScrollIndex;
+                        Debug.Log($"Shifting {node.Value.index} to back");
+                        // // m_CarouselCells[i].offsetFromCenter = i + m_CarouselCells.Length - currentScrollIndex;
+                        m_CarouselCells.Remove(node);
+                        m_CarouselCells.AddLast(node);
+                        node.Value.index = last.Value.index + 1;
                     }
+
+                    // m_CarouselCells[i].index = Mathf.RoundToInt(m_CarouselCells[i].offsetFromCenter + depth);
                 }
 
-                m_CarouselCells[i].gameObject.SetActive(
-                    m_CarouselCells[i].offsetFromCenterAbs < depthMinusMargin
+                node.Value.gameObject.SetActive(
+                    node.Value.offsetFromCenterAbs < depthMinusMargin
                 );
 
-                m_CarouselCellLayoutHandler.UpdateLayout(m_CarouselCells[i]);
+                int mappedDataIndex =
+                (
+                    (
+                        (
+                            node.Value.index)
+                        % data.Length
+                    )
+                    + data.Length
+                ) % data.Length;
+
+                // if (m_CarouselCells[i].data != m_Data[mappedDataIndex])
+                {
+                    node.Value.data = m_Data[mappedDataIndex];
+                    node.Value.gameObject.name =
+                        $"[{node.Value.index:000} <> {mappedDataIndex:000}] Element '{m_Data[mappedDataIndex].name}'";
+                }
+
+                // Debug.Log($"{i} = {mappedDataIndex}; {m_SteppedDragHandler.traveledScrollIndizes}");
+
+                m_CarouselCellLayoutHandler.UpdateLayout(node.Value);
+                node = nextNode;
             }
+            // for (int i = 0; i < m_CarouselCells.Length; i++)
+            // {
+            //     m_CarouselCells[i].offsetFromCenter = i - currentScrollIndex;
+            //
+            //     // detecting overflow: cell is outside the allowed range
+            //     if (Mathf.RoundToInt(m_CarouselCells[i].offsetFromCenterAbs) > depth)
+            //     {
+            //         // shift overflowed cell to left (negative) or right (positive)?
+            //         if (m_CarouselCells[i].offsetFromCenter > 0)
+            //         {
+            //             m_CarouselCells[i].offsetFromCenter = i - m_CarouselCells.Length - currentScrollIndex;
+            //         }
+            //         else
+            //         {
+            //             m_CarouselCells[i].offsetFromCenter = i + m_CarouselCells.Length - currentScrollIndex;
+            //         }
+            //
+            //         // m_CarouselCells[i].index = Mathf.RoundToInt(m_CarouselCells[i].offsetFromCenter + depth);
+            //     }
+            //
+            //     m_CarouselCells[i].gameObject.SetActive(
+            //         m_CarouselCells[i].offsetFromCenterAbs < depthMinusMargin
+            //     );
+            //
+            //     int mappedDataIndex =
+            //     (
+            //         (
+            //             (
+            //                 // Mathf.RoundToInt(m_SteppedDragHandler.traveledScrollIndizes)
+            //                 -1 + m_CarouselCells[i].index)
+            //             % data.Length
+            //         )
+            //         + data.Length
+            //     ) % data.Length;
+            //
+            //     // if (m_CarouselCells[i].data != m_Data[mappedDataIndex])
+            //     {
+            //         m_CarouselCells[i].data = m_Data[mappedDataIndex];
+            //         m_CarouselCells[i].gameObject.name =
+            //             $"[{m_CarouselCells[i].index:000} <> {mappedDataIndex:000}] Element '{m_Data[mappedDataIndex].name}'";
+            //     }
+            //
+            //     // Debug.Log($"{i} = {mappedDataIndex}; {m_SteppedDragHandler.traveledScrollIndizes}");
+            //
+            //     m_CarouselCellLayoutHandler.UpdateLayout(m_CarouselCells[i]);
+            // }
 
             // sibling order determines render order
             // center is considered the first layer; its neighbours the second layer, etc.

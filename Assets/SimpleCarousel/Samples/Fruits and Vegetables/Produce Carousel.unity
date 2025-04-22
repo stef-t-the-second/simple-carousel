@@ -924,6 +924,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 248302d1ef564c2e943d8a04c3ece179, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_VisibleElements: 5
+  m_StartPosition: 3
   m_CellPrefab: {fileID: 927257489463021833}
   m_Data:
   - m_Name: Banana
@@ -966,8 +968,6 @@ MonoBehaviour:
     m_Description: A crunchy, sweet root vegetable, typically orange, known for being
       rich in Vitamin A.
     m_ImageName: carrot
-  m_DisplayedElements: 5
-  m_StartScrollPosition: 3
 --- !u!1 &1835485328
 GameObject:
   m_ObjectHideFlags: 0

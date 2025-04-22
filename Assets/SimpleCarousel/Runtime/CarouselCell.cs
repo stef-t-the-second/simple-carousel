@@ -20,6 +20,8 @@ namespace Steft.SimpleCarousel
 
         public float offsetFromCenterAbs { get; private set; }
 
+        public int index { get; set; }
+
         public abstract TData data { get; set; }
 
         public RectTransform rectTransform

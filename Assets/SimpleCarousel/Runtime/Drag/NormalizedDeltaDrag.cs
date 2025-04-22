@@ -17,6 +17,14 @@ namespace Steft.SimpleCarousel.Drag
 
         public float targetScrollIndex { get; private set; }
 
+        public int rounds { get; private set; } = 0;
+
+        public float startScrollIndex { get; private set; }
+
+        public float traveledDelta { get; private set; }
+
+        public float traveledScrollIndizes { get; private set; }
+
         public float currentScrollIndex { get; private set; }
 
         public bool isDragging { get; private set; }
@@ -71,6 +79,7 @@ namespace Steft.SimpleCarousel.Drag
             targetScrollIndex = currentScrollIndex;
             m_LastLocalCursor = Vector2.zero;
             m_ScrollVelocity  = 0f;
+            traveledDelta     = 0f;
 
             // we need to initialize LastLocalCursor
             // to avoid big deltas during the first OnDrag call
@@ -100,7 +109,9 @@ namespace Steft.SimpleCarousel.Drag
             );
 
             var smoothedDelta = -normalizedDelta * m_ScrollSensitivity;
-            targetScrollIndex += smoothedDelta.x;
+            targetScrollIndex     += smoothedDelta.x;
+            traveledScrollIndizes += smoothedDelta.x;
+            traveledDelta         += smoothedDelta.x;
 
             // making sure that targetScrollIndex remains in range [0,MaximumScrollIndex]
             // this way we are able to handle overflow correctly
@@ -109,12 +120,14 @@ namespace Steft.SimpleCarousel.Drag
             {
                 targetScrollIndex  -= m_MaximumScrollIndex;
                 currentScrollIndex -= m_MaximumScrollIndex;
+                rounds--;
             }
 
             if (targetScrollIndex < 0)
             {
                 targetScrollIndex  += m_MaximumScrollIndex;
                 currentScrollIndex += m_MaximumScrollIndex;
+                rounds++;
             }
 
             m_LastLocalCursor = localCursor;
@@ -122,10 +135,12 @@ namespace Steft.SimpleCarousel.Drag
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            isDragging        = false;
-            m_LastLocalCursor = Vector2.zero;
-            targetScrollIndex = Mathf.Round(targetScrollIndex);
-            targetScrollIndex = Mathf.Clamp(targetScrollIndex, 0f, m_MaximumScrollIndex);
+            isDragging            = false;
+            m_LastLocalCursor     = Vector2.zero;
+            traveledDelta         = 0f;
+            targetScrollIndex     = Mathf.Round(targetScrollIndex);
+            targetScrollIndex     = Mathf.Clamp(targetScrollIndex, 0f, m_MaximumScrollIndex);
+            traveledScrollIndizes = Mathf.Round(traveledScrollIndizes);
         }
     }
 }
