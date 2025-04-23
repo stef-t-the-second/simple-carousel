@@ -16,16 +16,17 @@ namespace Steft.SimpleCarousel
         where TData : class, ICarouselData
     {
         // TODO
-        //  - cleanup .scene file and remove redundant sfield entries
-        //  - add tooltip attributes to all sfields
         //  - "OnValidate"
         //  - refactor "Awake"
         //  - stress test scrolling / swiping to avoid it malfunctioning
+        //  - add "developer API"
+        //  - "CustomEditor" for CarouselView if possible: warmup/preload all prefab instances (AssemblyInfo InternalsVisibleTo?)
+        //  - cleanup .scene file and remove redundant sfield entries
+        //  - add tooltip attributes to all sfields
+        //  - add "summaries"
         //  - test on device
         //  - add "Tests"
-        //  - add "developer API"
         //  - decide if we want SmoothDamp towards center after drag ends
-        //  - "CustomEditor" for CarouselView if possible: warmup/preload all prefab instances (AssemblyInfo InternalsVisibleTo?)
 
         [Min(3), SerializeField]               private int   m_VisibleElements  = 3;
         [Range(0.0001f, 20f)] [SerializeField] private float m_CenterSmoothTime = 0.2f;
