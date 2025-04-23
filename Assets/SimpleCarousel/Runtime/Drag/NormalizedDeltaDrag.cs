@@ -52,7 +52,7 @@ namespace Steft.SimpleCarousel.Drag
                 (localCursor.y - m_LastLocalCursor.y) / ((RectTransform)transform).rect.height
             );
 
-            var smoothedDelta = -normalizedDelta * m_ScrollSensitivity;
+            var smoothedDelta = normalizedDelta * m_ScrollSensitivity;
             delta += smoothedDelta.x;
 
             m_LastLocalCursor = localCursor;
