@@ -27,7 +27,7 @@ namespace Steft.SimpleCarousel
         // note we could implement some dependency injection here,
         // that for example looks for the presence of respective interface implementations on the local GameObject
         // this has the benefit of throwing these setup related errors already when compiling instead of throwing during runtime
-        private ISteppedSmoothDragHandler                 m_SteppedDragHandler;
+        private IDeltaDragHandler                         m_DeltaDragHandler;
         private ICarouselCellLayoutHandler<ICarouselCell> m_CarouselCellLayoutHandler;
 
         private int m_MovingCircularDataIndex;
@@ -93,8 +93,7 @@ namespace Steft.SimpleCarousel
 
         private void Awake()
         {
-            m_SteppedDragHandler = GetComponent<ISteppedSmoothDragHandler>();
-            m_SteppedDragHandler.Init(depth, poolSize - 1);
+            m_DeltaDragHandler          = GetComponent<IDeltaDragHandler>();
             m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
 
             // TODO this will be refactored as soon as we implement pooling
@@ -140,7 +139,7 @@ namespace Steft.SimpleCarousel
 
         public void Update()
         {
-            UpdateCells(m_SteppedDragHandler.currentScrollIndex);
+            UpdateCells();
         }
 
 #if UNITY_EDITOR
@@ -221,9 +220,22 @@ namespace Steft.SimpleCarousel
 
         public void OnBeginDrag(PointerEventData eventData) => UpdateCenterStartIndex();
 
-        public void OnEndDrag(PointerEventData eventData) => UpdateCenterStartIndex();
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            // TODO this is copied from the DragHandler
+            //      move this to update and do something similar
+            //      instead of just setting the CenterStartIndex, smooth towards it
 
-        private void UpdateCells(float currentScrollIndex)
+            // [Range(0.1f,    100f)] [SerializeField] private float m_ScrollSensitivity = 10f;
+            // [Range(    0.0001f, 20f)] [SerializeField]  private float m_ScrollSmoothTime  = 0.2f;
+            // currentScrollIndex = Mathf.SmoothDamp(
+            //     currentScrollIndex, targetScrollIndex, ref m_ScrollVelocity, m_ScrollSmoothTime, 10);
+
+
+            UpdateCenterStartIndex();
+        }
+
+        private void UpdateCells()
         {
             if (transform.childCount == 0)
                 return;
@@ -237,7 +249,7 @@ namespace Steft.SimpleCarousel
             {
                 var nextNode = node.Next;
                 node.Value.offsetFromCenter =
-                    node.Value.index - m_CenterStartIndex - m_SteppedDragHandler.traveledDelta;
+                    node.Value.index - m_CenterStartIndex - m_DeltaDragHandler.delta;
 
                 // detecting overflow: cell is outside the allowed range
                 if (Mathf.Round(node.Value.offsetFromCenterAbs) > depth)
