@@ -177,11 +177,15 @@ namespace Steft.SimpleCarousel
 
 #endregion
 
+#region Drag Handlers
+
         public void OnBeginDrag(PointerEventData eventData) => m_CenterIndex = GetCenterIndex();
 
         public void OnEndDrag(PointerEventData eventData) =>
+            // m_TargetCenterIndex = GetCenterIndex();
             m_CenterIndex = m_TargetCenterIndex = GetCenterIndex();
-        // m_TargetCenterIndex = GetCenterIndex();
+
+#endregion
 
         private void UpdateCells()
         {
