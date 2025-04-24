@@ -50,6 +50,12 @@ namespace Steft.SimpleCarousel
         private float m_TargetCenterIndex;
         private float m_CenterSmoothVelocity;
 
+        private float depthMinusMargin => depth - 0.5f;
+
+        private int depth => (poolSize - 1) / 2;
+
+        private int poolSize => m_VisibleElements + 2;
+        
         public int visibleElements
         {
             get => m_VisibleElements;
@@ -76,11 +82,7 @@ namespace Steft.SimpleCarousel
             }
         }
 
-        private float depthMinusMargin => depth - 0.5f;
-
-        private int depth => (poolSize - 1) / 2;
-
-        private int poolSize => m_VisibleElements + 2;
+        public UnityEvent<TData> onCenterChanged => m_OnCenterChanged;
 
         private CarouselCell<TData> GetCenterCell()
         {
@@ -107,103 +109,6 @@ namespace Steft.SimpleCarousel
             // 3. % size: brings the value back into the [0, size - 1] range
             return ((index % size) + size) % size;
         }
-
-#region Public API
-
-        public UnityEvent<TData> onCenterChanged => m_OnCenterChanged;
-
-        public void AddLast(CarouselCell<TData> cell)
-        {
-            if (cell == null)
-            {
-                Debug.Log($"Passed '{nameof(cell)}' is null");
-                return;
-            }
-
-            m_CarouselCells.AddLast(cell);
-        }
-
-        public void AddLast(IReadOnlyList<CarouselCell<TData>> cells)
-        {
-            if (cells == null)
-            {
-                Debug.Log($"Passed '{nameof(cells)}' is null");
-                return;
-            }
-
-            for (int i = 0; i < cells.Count; i++)
-            {
-                if (cells[i] == null)
-                {
-                    Debug.LogWarning($"Skipping 'cell' at index '{i}', because it is null");
-                    continue;
-                }
-
-                m_CarouselCells.AddLast(cells[i]);
-            }
-        }
-
-        public void AddAfter(CarouselCell<TData> cellAfter, CarouselCell<TData> cellNew)
-        {
-            if (cellAfter == null || cellNew == null)
-            {
-                Debug.Log($"Either '{nameof(cellAfter)}' or '{nameof(cellNew)}' is null");
-                return;
-            }
-
-            if (m_CarouselCells.Find(cellAfter) is { } node)
-            {
-                m_CarouselCells.AddAfter(node, cellNew);
-            }
-            else
-            {
-                Debug.LogWarning($"Cannot add '{cellNew.name}', because '{cellAfter.name}' not found");
-            }
-        }
-
-        public void AddAfter(CarouselCell<TData> cellAfter, IReadOnlyList<CarouselCell<TData>> cells)
-        {
-            if (cellAfter == null || cells == null)
-            {
-                Debug.Log($"Either '{nameof(cellAfter)}' or '{nameof(cells)}' is null");
-                return;
-            }
-
-            if (m_CarouselCells.Find(cellAfter) is { } node)
-            {
-                for (int i = cells.Count; i >= 0; i--)
-                {
-                    m_CarouselCells.AddAfter(node, cells[i]);
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"Cannot add '{nameof(cells)}', because '{cellAfter.name}' not found");
-            }
-        }
-
-        public void RemoveAll()
-        {
-            foreach (var cell in m_CarouselCells)
-            {
-                Destroy(cell.gameObject);
-            }
-
-            m_CarouselCells.Clear();
-        }
-
-        public bool Remove(CarouselCell<TData> cell)
-        {
-            if (cell == null)
-            {
-                Debug.Log($"Passed '{nameof(cell)}' is null");
-                return false;
-            }
-
-            return m_CarouselCells.Remove(cell);
-        }
-
-#endregion
 
 #region Unity Methods
 
@@ -365,6 +270,97 @@ namespace Steft.SimpleCarousel
             {
                 cellsOrderedByOffset[i].rectTransform.SetSiblingIndex(cellsOrderedByOffset.Length - 1 - i);
             }
+        }
+
+        public void AddLast(CarouselCell<TData> cell)
+        {
+            if (cell == null)
+            {
+                Debug.Log($"Passed '{nameof(cell)}' is null");
+                return;
+            }
+
+            m_CarouselCells.AddLast(cell);
+        }
+
+        public void AddLast(IReadOnlyList<CarouselCell<TData>> cells)
+        {
+            if (cells == null)
+            {
+                Debug.Log($"Passed '{nameof(cells)}' is null");
+                return;
+            }
+
+            for (int i = 0; i < cells.Count; i++)
+            {
+                if (cells[i] == null)
+                {
+                    Debug.LogWarning($"Skipping 'cell' at index '{i}', because it is null");
+                    continue;
+                }
+
+                m_CarouselCells.AddLast(cells[i]);
+            }
+        }
+
+        public void AddAfter(CarouselCell<TData> cellAfter, CarouselCell<TData> cellNew)
+        {
+            if (cellAfter == null || cellNew == null)
+            {
+                Debug.Log($"Either '{nameof(cellAfter)}' or '{nameof(cellNew)}' is null");
+                return;
+            }
+
+            if (m_CarouselCells.Find(cellAfter) is { } node)
+            {
+                m_CarouselCells.AddAfter(node, cellNew);
+            }
+            else
+            {
+                Debug.LogWarning($"Cannot add '{cellNew.name}', because '{cellAfter.name}' not found");
+            }
+        }
+
+        public void AddAfter(CarouselCell<TData> cellAfter, IReadOnlyList<CarouselCell<TData>> cells)
+        {
+            if (cellAfter == null || cells == null)
+            {
+                Debug.Log($"Either '{nameof(cellAfter)}' or '{nameof(cells)}' is null");
+                return;
+            }
+
+            if (m_CarouselCells.Find(cellAfter) is { } node)
+            {
+                for (int i = cells.Count; i >= 0; i--)
+                {
+                    m_CarouselCells.AddAfter(node, cells[i]);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Cannot add '{nameof(cells)}', because '{cellAfter.name}' not found");
+            }
+        }
+
+        public void RemoveAll()
+        {
+            foreach (var cell in m_CarouselCells)
+            {
+                Destroy(cell.gameObject);
+            }
+
+            m_CarouselCells.Clear();
+        }
+
+        public bool Remove(CarouselCell<TData> cell)
+        {
+            if (cell == null)
+            {
+                Debug.Log($"Passed '{nameof(cell)}' is null");
+                return false;
+            }
+
+            return m_CarouselCells.Remove(cell);
         }
     }
 }
