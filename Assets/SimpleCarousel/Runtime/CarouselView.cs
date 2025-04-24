@@ -12,7 +12,7 @@ namespace Steft.SimpleCarousel
 {
     public abstract class CarouselView : MonoBehaviour
     {
-        internal abstract void RebuildCells();
+        internal abstract void RebuildCells(bool force = false);
     }
 
     [RequireComponent(typeof(Image))]
@@ -57,9 +57,19 @@ namespace Steft.SimpleCarousel
 
         private float depthMinusMargin => depth - 0.5f;
 
-        private int depth => (poolSize - 1) / 2;
+        internal CarouselCell<TData> cellPrefab
+        {
+            get => m_CellPrefab;
+            set
+            {
+                m_CellPrefab = value;
+                RebuildCells(true);
+            }
+        }
 
-        private int poolSize => m_VisibleElements + 2;
+        internal int depth => (poolSize - 1) / 2;
+
+        internal int poolSize => m_VisibleElements + 2;
 
         public int visibleElements
         {
@@ -70,9 +80,13 @@ namespace Steft.SimpleCarousel
                 // - minimum is 3
                 // - must be an odd number
 
+                if (m_VisibleElements == value)
+                    return;
+
                 if (value < 3)
                 {
                     m_VisibleElements = 3;
+                    RebuildCells();
                     return;
                 }
 
@@ -80,10 +94,12 @@ namespace Steft.SimpleCarousel
                 {
                     // minimum even number is 4
                     m_VisibleElements = value - 1;
+                    RebuildCells();
                     return;
                 }
 
                 m_VisibleElements = value;
+                RebuildCells();
             }
         }
 
@@ -130,9 +146,6 @@ namespace Steft.SimpleCarousel
             if (m_CellPrefab.gameObject.scene.IsValid())
                 m_CellPrefab.gameObject.SetActive(false);
 
-            if (m_CellPrefab         == null) return;
-            if (m_Data.Length        == 0) return;
-            if (transform.childCount == poolSize) return;
             RebuildCells();
         }
 
@@ -228,10 +241,13 @@ namespace Steft.SimpleCarousel
                     node.Value.offsetFromCenterAbs < depthMinusMargin
                 );
 
-                int dataIndex = GetCircularIndex(node.Value.index, m_Data.Length);
-                if (node.Value.data != m_Data[dataIndex])
+                if (m_Data.Length > 0)
                 {
-                    node.Value.data = m_Data[dataIndex];
+                    int dataIndex = GetCircularIndex(node.Value.index, m_Data.Length);
+                    if (node.Value.data != m_Data[dataIndex])
+                    {
+                        node.Value.data = m_Data[dataIndex];
+                    }
                 }
 
                 m_CarouselCellLayoutHandler.UpdateLayout(node.Value);
@@ -251,8 +267,17 @@ namespace Steft.SimpleCarousel
             }
         }
 
-        internal override void RebuildCells()
+        internal override void RebuildCells(bool force = false)
         {
+            if (m_CellPrefab == null)
+            {
+                Debug.LogError($"Cannot build cells while '{nameof(m_CellPrefab)}' is null");
+                return;
+            }
+
+            if (!force && transform.childCount == poolSize)
+                return;
+
             foreach (Transform child in transform)
             {
                 Destroy(child.gameObject);
