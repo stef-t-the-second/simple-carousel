@@ -195,12 +195,6 @@ namespace Steft.SimpleCarousel
                 return;
 
             var node = m_CarouselCells.First;
-            var first = m_CarouselCells.First;
-            var last = m_CarouselCells.Last;
-
-            // there is a symmetrical buffer of 1 element to the left/right
-            // hence we can at most "overflow" 1 element at a time
-            bool overflowedHandled = false;
 
             while (node != null)
             {
@@ -208,14 +202,14 @@ namespace Steft.SimpleCarousel
                 node.Value.offsetFromCenter = node.Value.index - m_CenterIndex + m_DeltaDragHandler.totalDelta;
 
                 // detecting overflow: cell is outside the allowed range
-                if (!overflowedHandled && Mathf.Round(node.Value.offsetFromCenterAbs) > depth)
+                if (Mathf.Round(node.Value.offsetFromCenterAbs) > depth)
                 {
                     // positive: rightmost element needs to be moved to front
                     if (node.Value.offsetFromCenter > 0)
                     {
                         m_CarouselCells.Remove(node);
                         m_CarouselCells.AddFirst(node);
-                        node.Value.index = first.Value.index - 1;
+                        node.Value.index = node.Next!.Value.index - 1;
                     }
 
                     // negative: leftmost element needs to be moved to back
@@ -223,10 +217,8 @@ namespace Steft.SimpleCarousel
                     {
                         m_CarouselCells.Remove(node);
                         m_CarouselCells.AddLast(node);
-                        node.Value.index = last.Value.index + 1;
+                        node.Value.index = node.Previous!.Value.index + 1;
                     }
-
-                    overflowedHandled = true;
                 }
 
                 // elements outside the allowed range are invisible
