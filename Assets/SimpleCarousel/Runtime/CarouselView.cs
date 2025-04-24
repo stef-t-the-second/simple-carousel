@@ -5,7 +5,6 @@ using Steft.SimpleCarousel.Drag;
 using Steft.SimpleCarousel.Layout;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Steft.SimpleCarousel
@@ -80,7 +79,7 @@ namespace Steft.SimpleCarousel
 
         private int poolSize => m_VisibleElements + 2;
 
-        private float GetCenterIndex()
+        private CarouselCell<TData> GetCenterCell()
         {
             var center = m_CarouselCells.First;
             for (int i = 0; i < depth; i++)
@@ -94,7 +93,7 @@ namespace Steft.SimpleCarousel
             if (center == null || center.Value == null)
                 throw new NullReferenceException($"{nameof(center)} at {m_CenterIndex}");
 
-            return GetCircularIndex(center.Value.index, m_Data.Length);
+            return center.Value;
         }
 
         private int GetCircularIndex(int index, int size)
@@ -155,7 +154,7 @@ namespace Steft.SimpleCarousel
                         // m_CarouselCells[i].index = i;
                     }
 
-                    m_CenterIndex = m_TargetCenterIndex = GetCenterIndex();
+                    m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
                 }
             }
         }
@@ -164,29 +163,35 @@ namespace Steft.SimpleCarousel
         {
             UpdateCells();
 
-            // if (Mathf.Approximately(m_CenterIndex, m_TargetCenterIndex))
-            //     return;
-            //
-            // m_CenterIndex = Mathf.SmoothDamp(
-            //     m_CenterIndex, m_TargetCenterIndex, ref m_CenterSmoothVelocity, m_CenterSmoothTime, 10);
-            //
-            // if (Mathf.Abs(m_CenterSmoothVelocity)              < 0.01f &&
-            //     Mathf.Abs(m_TargetCenterIndex - m_CenterIndex) < 0.01f)
-            // {
-            //     m_CenterIndex          = m_TargetCenterIndex;
-            //     m_CenterSmoothVelocity = 0f;
-            // }
+            if (Mathf.Approximately(m_CenterIndex, m_TargetCenterIndex))
+                return;
+
+            m_CenterIndex = Mathf.SmoothDamp(
+                m_CenterIndex, m_TargetCenterIndex, ref m_CenterSmoothVelocity, m_CenterSmoothTime, 10);
+
+            if (Mathf.Abs(m_CenterSmoothVelocity)              < 0.01f &&
+                Mathf.Abs(m_TargetCenterIndex - m_CenterIndex) < 0.01f)
+            {
+                m_CenterIndex          = m_TargetCenterIndex;
+                m_CenterSmoothVelocity = 0f;
+            }
         }
 
 #endregion
 
 #region Drag Handlers
 
-        public void OnBeginDrag(PointerEventData eventData) => m_CenterIndex = GetCenterIndex();
+        public void OnBeginDrag(PointerEventData eventData) => m_CenterIndex = GetCenterCell().index;
 
-        public void OnEndDrag(PointerEventData eventData) =>
-            // m_TargetCenterIndex = GetCenterIndex();
-            m_CenterIndex = m_TargetCenterIndex = GetCenterIndex();
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            var centerCell = GetCenterCell();
+            m_TargetCenterIndex = centerCell.index;
+
+            // we are still in the process of moving the carousel,
+            // so the offsetFromCenter will not be an integer value yet
+            m_CenterIndex = m_TargetCenterIndex - centerCell.offsetFromCenter;
+        }
 
 #endregion
 
@@ -206,7 +211,7 @@ namespace Steft.SimpleCarousel
             while (node != null)
             {
                 var nodeNext = node.Next; // caching next node before any changes to the linked list
-                node.Value.offsetFromCenter = node.Value.index - m_CenterIndex + m_DeltaDragHandler.delta;
+                node.Value.offsetFromCenter = node.Value.index - m_CenterIndex + m_DeltaDragHandler.totalDelta;
 
                 // detecting overflow: cell is outside the allowed range
                 if (!overflowedHandled && Mathf.Round(node.Value.offsetFromCenterAbs) > depth)
