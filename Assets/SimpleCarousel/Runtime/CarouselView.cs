@@ -43,7 +43,7 @@ namespace Steft.SimpleCarousel
         [SerializeField] private CarouselCell<TData> m_CellPrefab;
         [SerializeField] private TData[]             m_Data = Array.Empty<TData>();
 
-        private readonly LinkedList<CarouselCell<TData>> m_CarouselCells = new();
+        private readonly LinkedList<CarouselCell<TData>> m_CellPool = new();
 
         // note we could implement some dependency injection here,
         // that for example looks for the presence of respective interface implementations on the local GameObject
@@ -107,7 +107,7 @@ namespace Steft.SimpleCarousel
 
         private CarouselCell<TData> GetCenterCell()
         {
-            var center = m_CarouselCells.First;
+            var center = m_CellPool.First;
             for (int i = 0; i < depth; i++)
             {
                 if (center == null)
@@ -207,7 +207,7 @@ namespace Steft.SimpleCarousel
             if (transform.childCount == 0)
                 return;
 
-            var node = m_CarouselCells.First;
+            var node = m_CellPool.First;
 
             while (node != null)
             {
@@ -220,16 +220,16 @@ namespace Steft.SimpleCarousel
                     // positive: rightmost element needs to be moved to front
                     if (node.Value.offsetFromCenter > 0)
                     {
-                        m_CarouselCells.Remove(node);
-                        m_CarouselCells.AddFirst(node);
+                        m_CellPool.Remove(node);
+                        m_CellPool.AddFirst(node);
                         node.Value.index = node.Next!.Value.index - 1;
                     }
 
                     // negative: leftmost element needs to be moved to back
                     if (node.Value.offsetFromCenter < 0)
                     {
-                        m_CarouselCells.Remove(node);
-                        m_CarouselCells.AddLast(node);
+                        m_CellPool.Remove(node);
+                        m_CellPool.AddLast(node);
                         node.Value.index = node.Previous!.Value.index + 1;
                     }
                 }
@@ -257,7 +257,7 @@ namespace Steft.SimpleCarousel
             // sibling order determines render order
             // center is considered the first layer; its neighbours the second layer, etc.
             // last sibling is rendered last; hence the last sibling is ultimately in front
-            var cellsOrderedByOffset = m_CarouselCells
+            var cellsOrderedByOffset = m_CellPool
                 .OrderBy(t => t.offsetFromCenterAbs)
                 .ToArray();
 
@@ -283,7 +283,7 @@ namespace Steft.SimpleCarousel
                 Destroy(child.gameObject);
             }
 
-            m_CarouselCells.Clear();
+            m_CellPool.Clear();
             for (int i = 0; i < poolSize; i++)
             {
                 var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
@@ -305,15 +305,15 @@ namespace Steft.SimpleCarousel
                     }
                 }
 
-                var carouselCell = prefabInstance.GetComponent<CarouselCell<TData>>();
-                carouselCell.index  = i   - 1;
-                prefabInstance.name = "[" + carouselCell.index + "]";
-                m_CarouselCells.AddLast(carouselCell);
+                var cell = prefabInstance.GetComponent<CarouselCell<TData>>();
+                cell.index          = i   - 1;
+                prefabInstance.name = "[" + cell.index + "]";
+                m_CellPool.AddLast(cell);
 
                 if (m_Data.Length > 0)
                 {
-                    int dataIndex = GetCircularIndex(carouselCell.index, m_Data.Length);
-                    carouselCell.data = m_Data[dataIndex];
+                    int dataIndex = GetCircularIndex(cell.index, m_Data.Length);
+                    cell.data = m_Data[dataIndex];
                 }
             }
 
@@ -330,7 +330,7 @@ namespace Steft.SimpleCarousel
                 return;
             }
 
-            m_CarouselCells.AddLast(cell);
+            m_CellPool.AddLast(cell);
         }
 
         public void AddLast(IReadOnlyList<CarouselCell<TData>> cells)
@@ -349,7 +349,7 @@ namespace Steft.SimpleCarousel
                     continue;
                 }
 
-                m_CarouselCells.AddLast(cells[i]);
+                m_CellPool.AddLast(cells[i]);
             }
         }
 
@@ -361,9 +361,9 @@ namespace Steft.SimpleCarousel
                 return;
             }
 
-            if (m_CarouselCells.Find(cellAfter) is { } node)
+            if (m_CellPool.Find(cellAfter) is { } node)
             {
-                m_CarouselCells.AddAfter(node, cellNew);
+                m_CellPool.AddAfter(node, cellNew);
             }
             else
             {
@@ -379,11 +379,11 @@ namespace Steft.SimpleCarousel
                 return;
             }
 
-            if (m_CarouselCells.Find(cellAfter) is { } node)
+            if (m_CellPool.Find(cellAfter) is { } node)
             {
                 for (int i = cells.Count; i >= 0; i--)
                 {
-                    m_CarouselCells.AddAfter(node, cells[i]);
+                    m_CellPool.AddAfter(node, cells[i]);
                 }
             }
             else
@@ -394,12 +394,12 @@ namespace Steft.SimpleCarousel
 
         public void RemoveAll()
         {
-            foreach (var cell in m_CarouselCells)
+            foreach (var cell in m_CellPool)
             {
                 Destroy(cell.gameObject);
             }
 
-            m_CarouselCells.Clear();
+            m_CellPool.Clear();
         }
 
         public bool Remove(CarouselCell<TData> cell)
@@ -410,7 +410,7 @@ namespace Steft.SimpleCarousel
                 return false;
             }
 
-            return m_CarouselCells.Remove(cell);
+            return m_CellPool.Remove(cell);
         }
     }
 }
