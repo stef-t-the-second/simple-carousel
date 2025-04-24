@@ -4,6 +4,7 @@ using System.Linq;
 using Steft.SimpleCarousel.Drag;
 using Steft.SimpleCarousel.Layout;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -29,8 +30,10 @@ namespace Steft.SimpleCarousel
         //  - add "Tests"
         //  - decide if we want SmoothDamp towards center after drag ends
 
-        [Min(3), SerializeField]               private int   m_VisibleElements  = 3;
-        [Range(0.0001f, 20f)] [SerializeField] private float m_CenterSmoothTime = 0.2f;
+        [SerializeField] private UnityEvent<TData> m_OnCenterChanged;
+
+        [Space, Min(3), SerializeField]       private int   m_VisibleElements  = 3;
+        [Range(0.0001f, 20f), SerializeField] private float m_CenterSmoothTime = 0.2f;
 
         [SerializeField] private CarouselCell<TData> m_CellPrefab;
         [SerializeField] private TData[]             m_Data = Array.Empty<TData>();
@@ -104,6 +107,12 @@ namespace Steft.SimpleCarousel
             // 3. % size: brings the value back into the [0, size - 1] range
             return ((index % size) + size) % size;
         }
+
+#region Public API
+
+        public UnityEvent<TData> onCenterChanged => m_OnCenterChanged;
+
+#endregion
 
 #region Unity Methods
 
