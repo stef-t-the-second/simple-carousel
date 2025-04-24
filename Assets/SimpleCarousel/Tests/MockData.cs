@@ -1,5 +1,3 @@
-using System;
-
 namespace Steft.SimpleCarousel
 {
     internal class MockData : ICarouselData
