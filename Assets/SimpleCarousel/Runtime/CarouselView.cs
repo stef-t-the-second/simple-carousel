@@ -41,7 +41,7 @@ namespace Steft.SimpleCarousel
         [Range(0.0001f, 20f), SerializeField] private float m_CenterSmoothTime = 0.2f;
 
         [SerializeField] private CarouselCell<TData> m_CellPrefab;
-        [SerializeField] private TData[]             m_Data = Array.Empty<TData>();
+        [SerializeField] private List<TData>         m_Data = new(32);
 
         private readonly LinkedList<CarouselCell<TData>> m_CellPool = new();
 
@@ -66,6 +66,8 @@ namespace Steft.SimpleCarousel
                 RebuildCells(true);
             }
         }
+
+        internal IReadOnlyList<TData> data => m_Data;
 
         internal int depth => (poolSize - 1) / 2;
 
@@ -241,9 +243,9 @@ namespace Steft.SimpleCarousel
                     node.Value.offsetFromCenterAbs < depthMinusMargin
                 );
 
-                if (m_Data.Length > 0)
+                if (m_Data.Count > 0)
                 {
-                    int dataIndex = GetCircularIndex(node.Value.index, m_Data.Length);
+                    int dataIndex = GetCircularIndex(node.Value.index, m_Data.Count);
                     if (node.Value.data != m_Data[dataIndex])
                     {
                         node.Value.data = m_Data[dataIndex];
@@ -310,9 +312,9 @@ namespace Steft.SimpleCarousel
                 prefabInstance.name = "[" + cell.index + "]";
                 m_CellPool.AddLast(cell);
 
-                if (m_Data.Length > 0)
+                if (m_Data.Count > 0)
                 {
-                    int dataIndex = GetCircularIndex(cell.index, m_Data.Length);
+                    int dataIndex = GetCircularIndex(cell.index, m_Data.Count);
                     cell.data = m_Data[dataIndex];
                 }
             }
@@ -322,95 +324,128 @@ namespace Steft.SimpleCarousel
             UpdateCells();
         }
 
-        public void AddLast(CarouselCell<TData> cell)
+#region Public Methods
+
+        public void Add(TData item)
         {
-            if (cell == null)
+            if (item == null)
             {
-                Debug.Log($"Passed '{nameof(cell)}' is null");
+                Debug.LogError($"Passed '{nameof(item)}' is null");
                 return;
             }
 
-            m_CellPool.AddLast(cell);
+            m_Data.Add(item);
         }
 
-        public void AddLast(IReadOnlyList<CarouselCell<TData>> cells)
+        public void Add(IReadOnlyList<TData> items)
         {
-            if (cells == null)
+            if (items == null)
             {
-                Debug.Log($"Passed '{nameof(cells)}' is null");
+                Debug.LogError($"Passed '{nameof(items)}' is null");
                 return;
             }
 
-            for (int i = 0; i < cells.Count; i++)
+            for (int i = 0; i < items.Count; i++)
             {
-                if (cells[i] == null)
+                if (items[i] == null)
                 {
                     Debug.LogWarning($"Skipping 'cell' at index '{i}', because it is null");
                     continue;
                 }
 
-                m_CellPool.AddLast(cells[i]);
+                m_Data.Add(items[i]);
             }
         }
 
-        public void AddAfter(CarouselCell<TData> cellAfter, CarouselCell<TData> cellNew)
+        public void Insert(int index, TData item)
         {
-            if (cellAfter == null || cellNew == null)
+            if (index < 0 || index >= m_Data.Count)
             {
-                Debug.Log($"Either '{nameof(cellAfter)}' or '{nameof(cellNew)}' is null");
+                Debug.LogError($"Passed '{nameof(index)}' {index} is out of range");
                 return;
             }
 
-            if (m_CellPool.Find(cellAfter) is { } node)
+            if (item == null)
             {
-                m_CellPool.AddAfter(node, cellNew);
+                Debug.LogError($"Passed '{nameof(item)}' is null");
+                return;
             }
-            else
-            {
-                Debug.LogWarning($"Cannot add '{cellNew.name}', because '{cellAfter.name}' not found");
-            }
+
+            m_Data.Insert(index, item);
         }
 
-        public void AddAfter(CarouselCell<TData> cellAfter, IReadOnlyList<CarouselCell<TData>> cells)
+        public void Insert(int index, IReadOnlyList<TData> items)
         {
-            if (cellAfter == null || cells == null)
+            if (index < 0 || index >= m_Data.Count)
             {
-                Debug.Log($"Either '{nameof(cellAfter)}' or '{nameof(cells)}' is null");
+                Debug.LogError($"Passed '{nameof(index)}' {index} is out of range");
                 return;
             }
 
-            if (m_CellPool.Find(cellAfter) is { } node)
+            if (items == null)
             {
-                for (int i = cells.Count; i >= 0; i--)
-                {
-                    m_CellPool.AddAfter(node, cells[i]);
-                }
+                Debug.LogError($"Passed '{nameof(items)}' is null");
+                return;
             }
-            else
-            {
-                Debug.LogWarning($"Cannot add '{nameof(cells)}', because '{cellAfter.name}' not found");
-            }
+
+            var dataNoNull = items.Where(d => d != null);
+            m_Data.InsertRange(index, dataNoNull);
         }
 
         public void RemoveAll()
         {
-            foreach (var cell in m_CellPool)
-            {
-                Destroy(cell.gameObject);
-            }
-
-            m_CellPool.Clear();
+            m_Data.Clear();
+            RebuildCells(true);
         }
 
-        public bool Remove(CarouselCell<TData> cell)
+        public bool Remove(TData item)
         {
-            if (cell == null)
+            if (item == null)
             {
-                Debug.Log($"Passed '{nameof(cell)}' is null");
+                Debug.LogError($"Passed '{nameof(item)}' is null");
                 return false;
             }
 
-            return m_CellPool.Remove(cell);
+            return m_Data.Remove(item);
         }
+
+        public void Center(int index, bool animated)
+        {
+            if (index < 0 || index >= m_Data.Count)
+            {
+                Debug.LogError($"Passed '{nameof(index)}' {index} is out of range");
+                return;
+            }
+
+            if (animated)
+            {
+                m_TargetCenterIndex = index;
+            }
+            else
+            {
+                m_CenterIndex = m_TargetCenterIndex = index;
+            }
+        }
+
+        public void Center(TData item, bool animated)
+        {
+            if (item == null)
+            {
+                Debug.LogError($"Passed '{nameof(item)}' is null");
+                return;
+            }
+
+            int index = m_Data.IndexOf(item);
+            if (index > 0)
+            {
+                Center(index, animated);
+            }
+            else
+            {
+                Debug.LogWarning($"Passed '{nameof(item)}' not present in list");
+            }
+        }
+
+#endregion
     }
 }
