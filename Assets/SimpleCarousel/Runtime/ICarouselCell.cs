@@ -5,6 +5,8 @@ namespace Steft.SimpleCarousel
         float offsetFromCenter { get; set; }
 
         float offsetFromCenterAbs { get; }
+
+        int index { get; set; }
     }
 
     public interface ICarouselCell<out TData> : ICarouselCell where TData : class, ICarouselData
