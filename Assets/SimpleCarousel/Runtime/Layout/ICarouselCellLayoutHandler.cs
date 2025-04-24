@@ -1,7 +1,7 @@
 namespace Steft.SimpleCarousel.Layout
 {
-    public interface ICarouselCellLayoutHandler<in TCell> where TCell : ICarouselCell
+    public interface ICarouselCellLayoutHandler
     {
-        void UpdateLayout(TCell cell);
+        void UpdateLayout(ICarouselCell cell);
     }
 }

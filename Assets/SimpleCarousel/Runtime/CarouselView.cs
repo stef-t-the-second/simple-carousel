@@ -48,8 +48,8 @@ namespace Steft.SimpleCarousel
         // note we could implement some dependency injection here,
         // that for example looks for the presence of respective interface implementations on the local GameObject
         // this has the benefit of throwing these setup related errors already when compiling instead of throwing during runtime
-        private IDeltaDragHandler                         m_DeltaDragHandler;
-        private ICarouselCellLayoutHandler<ICarouselCell> m_CarouselCellLayoutHandler;
+        private IDeltaDragHandler          m_DeltaDragHandler;
+        private ICarouselCellLayoutHandler m_CarouselCellLayoutHandler;
 
         private float m_CenterIndex;
         private float m_TargetCenterIndex;
@@ -147,7 +147,7 @@ namespace Steft.SimpleCarousel
 
             if (m_CarouselCellLayoutHandler == null)
             {
-                m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
+                m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler>();
                 if (m_CarouselCellLayoutHandler == null)
                     throw new NullReferenceException($"{nameof(m_CarouselCellLayoutHandler)} cannot be null");
             }

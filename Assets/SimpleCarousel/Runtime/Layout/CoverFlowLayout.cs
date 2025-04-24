@@ -6,7 +6,7 @@ namespace Steft.SimpleCarousel.Layout
     ///
     /// </summary>
     /// https://en.wikipedia.org/wiki/Cover_Flow
-    public class CoverFlowLayout : MonoBehaviour, ICarouselCellLayoutHandler<ICarouselCell>
+    public class CoverFlowLayout : MonoBehaviour, ICarouselCellLayoutHandler
     {
         [Range(0.05f, 0.4f)] [SerializeField]
         // instead of have an absolute overlap depending on a cells width,
