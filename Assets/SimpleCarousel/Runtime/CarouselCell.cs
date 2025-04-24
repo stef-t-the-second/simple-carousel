@@ -7,6 +7,7 @@ namespace Steft.SimpleCarousel
     {
         private float         m_OffsetFromCenter;
         private RectTransform m_RectTransform;
+        private TData         m_Data;
 
         public float offsetFromCenter
         {
@@ -22,7 +23,15 @@ namespace Steft.SimpleCarousel
 
         public int index { get; set; }
 
-        public abstract TData data { get; set; }
+        public virtual TData data
+        {
+            get => m_Data;
+            set
+            {
+                m_Data          = value;
+                gameObject.name = $"[{index:000}] Element '{m_Data.name}'";
+            }
+        }
 
         public RectTransform rectTransform
         {

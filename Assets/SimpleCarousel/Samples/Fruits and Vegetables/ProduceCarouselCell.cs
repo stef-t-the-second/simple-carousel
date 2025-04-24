@@ -9,17 +9,15 @@ namespace Steft.SimpleCarousel.Samples
         [SerializeField] private Text  m_TextName;
         [SerializeField] private Text  m_TextDescription;
 
-        private ProduceData m_Data;
-
         public override ProduceData data
         {
-            get => m_Data;
+            get => base.data;
             set
             {
-                m_Data                 = value;
-                m_Image.sprite         = Resources.Load<Sprite>(m_Data.imageName);
-                m_TextName.text        = m_Data.name;
-                m_TextDescription.text = m_Data.description;
+                base.data              = value;
+                m_Image.sprite         = Resources.Load<Sprite>(value.imageName);
+                m_TextName.text        = value.name;
+                m_TextDescription.text = value.description;
             }
         }
     }

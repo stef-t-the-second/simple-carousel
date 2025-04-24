@@ -923,6 +923,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 248302d1ef564c2e943d8a04c3ece179, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_OnCenterChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_VisibleElements: 5
   m_CenterSmoothTime: 0.2
   m_CellPrefab: {fileID: 927257489463021833}

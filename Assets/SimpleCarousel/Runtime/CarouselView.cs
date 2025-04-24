@@ -10,9 +10,14 @@ using UnityEngine.UI;
 
 namespace Steft.SimpleCarousel
 {
+    public abstract class CarouselView : MonoBehaviour
+    {
+        internal abstract void RebuildCells();
+    }
+
     [RequireComponent(typeof(Image))]
     [DisallowMultipleComponent]
-    public class CarouselView<TData> : MonoBehaviour, IBeginDragHandler, IEndDragHandler
+    public class CarouselView<TData> : CarouselView, IBeginDragHandler, IEndDragHandler
         where TData : class, ICarouselData
     {
         // TODO
@@ -55,7 +60,7 @@ namespace Steft.SimpleCarousel
         private int depth => (poolSize - 1) / 2;
 
         private int poolSize => m_VisibleElements + 2;
-        
+
         public int visibleElements
         {
             get => m_VisibleElements;
@@ -120,47 +125,31 @@ namespace Steft.SimpleCarousel
 
         private void Awake()
         {
-            m_DeltaDragHandler          = GetComponent<IDeltaDragHandler>();
-            m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
+            // if the prefab is some GameObject that is part of the scene, we don't want it to be visible
+            // IsValid will return false, if a GameObject from the Hierarchy is referenced
+            if (m_CellPrefab.gameObject.scene.IsValid())
+                m_CellPrefab.gameObject.SetActive(false);
 
-            // TODO this will be refactored as soon as we implement pooling
-            if (m_CellPrefab != null)
+            if (m_CellPrefab         == null) return;
+            if (m_Data.Length        == 0) return;
+            if (transform.childCount == poolSize) return;
+            RebuildCells();
+        }
+
+        private void OnEnable()
+        {
+            if (m_DeltaDragHandler == null)
             {
-                Debug.Log("Awake");
+                m_DeltaDragHandler = GetComponent<IDeltaDragHandler>();
+                if (m_DeltaDragHandler == null)
+                    throw new NullReferenceException($"{nameof(m_DeltaDragHandler)} cannot be null");
+            }
 
-                if (transform.childCount != poolSize)
-                {
-                    foreach (Transform child in transform)
-                    {
-                        Destroy(child.gameObject);
-                    }
-
-                    m_CarouselCells.Clear();
-
-                    for (int i = 0; i < poolSize; i++)
-                    {
-                        var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
-                        prefabInstance.SetActive(true);
-                        var rectTransform = prefabInstance.transform as RectTransform;
-                        if (rectTransform == null)
-                            throw new NullReferenceException($"[{i}] RectTransform is null");
-
-                        rectTransform.ResetToMiddleCenter();
-                        // rectTransform.gameObject.name = $"[{i:000}] Element '{m_Data[i].name}'";
-
-                        // prefabInstance.hideFlags       = HideFlags.NotEditable;
-                        // prefabInstance.hideFlags = HideFlags.DontSave;
-                        var carouselCell = prefabInstance.GetComponent<CarouselCell<TData>>();
-                        carouselCell.index  = i   - 1;
-                        prefabInstance.name = "[" + carouselCell.index + "]";
-                        m_CarouselCells.AddLast(carouselCell);
-                        // m_CarouselCells[i]       = prefabInstance.GetComponent<CarouselCell<TData>>();
-                        // m_CarouselCells[i].data  = m_Data[i];
-                        // m_CarouselCells[i].index = i;
-                    }
-
-                    m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
-                }
+            if (m_CarouselCellLayoutHandler == null)
+            {
+                m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler<ICarouselCell>>();
+                if (m_CarouselCellLayoutHandler == null)
+                    throw new NullReferenceException($"{nameof(m_CarouselCellLayoutHandler)} cannot be null");
             }
         }
 
@@ -251,8 +240,6 @@ namespace Steft.SimpleCarousel
                 if (node.Value.data != m_Data[dataIndex])
                 {
                     node.Value.data = m_Data[dataIndex];
-                    node.Value.gameObject.name =
-                        $"[{node.Value.index:000} <> {dataIndex:000}] Element '{m_Data[dataIndex].name}'";
                 }
 
                 m_CarouselCellLayoutHandler.UpdateLayout(node.Value);
@@ -270,6 +257,52 @@ namespace Steft.SimpleCarousel
             {
                 cellsOrderedByOffset[i].rectTransform.SetSiblingIndex(cellsOrderedByOffset.Length - 1 - i);
             }
+        }
+
+        internal override void RebuildCells()
+        {
+            foreach (Transform child in transform)
+            {
+                Destroy(child.gameObject);
+            }
+
+            m_CarouselCells.Clear();
+            for (int i = 0; i < poolSize; i++)
+            {
+                var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
+                prefabInstance.SetActive(true);
+
+                var rectTransform = prefabInstance.transform as RectTransform;
+                if (rectTransform == null)
+                    throw new NullReferenceException($"[{i}] RectTransform is null");
+
+                rectTransform.ResetToMiddleCenter();
+
+                // this method might be called from the CarouselViewEditor
+                if (!Application.isPlaying)
+                {
+                    // sometimes the Editor does not set recursively set hideFlags when applied to root
+                    foreach (var child in prefabInstance.GetComponentsInChildren<Transform>(true))
+                    {
+                        child.gameObject.hideFlags = HideFlags.NotEditable | HideFlags.DontSaveInEditor;
+                    }
+                }
+
+                var carouselCell = prefabInstance.GetComponent<CarouselCell<TData>>();
+                carouselCell.index  = i   - 1;
+                prefabInstance.name = "[" + carouselCell.index + "]";
+                m_CarouselCells.AddLast(carouselCell);
+
+                if (m_Data.Length > 0)
+                {
+                    int dataIndex = GetCircularIndex(carouselCell.index, m_Data.Length);
+                    carouselCell.data = m_Data[dataIndex];
+                }
+            }
+
+            m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
+            OnEnable();
+            UpdateCells();
         }
 
         public void AddLast(CarouselCell<TData> cell)
