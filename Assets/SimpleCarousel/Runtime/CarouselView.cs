@@ -16,6 +16,8 @@ namespace Steft.SimpleCarousel
         where TData : class, ICarouselData
     {
         // TODO
+        //  - element edge closer to the screen does not appear longer than element edge further away from the screen
+        //      how should we proceed? change everything to 3d?
         //  - "OnValidate"
         //  - refactor "Awake"
         //  - stress test scrolling / swiping to avoid it malfunctioning
