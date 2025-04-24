@@ -14,6 +14,8 @@ namespace Steft.SimpleCarousel.Layout
         // to implement this idea, we must consider the rotation of a cell, which changes the occupied pixels on screen
         private float m_RelativeOverlap = 0.2f;
 
+        [Range(1f, 2f)] [SerializeField] private float m_DepthScalePower = 1.5f;
+
         [Range(0.1f, 0.9f)] [SerializeField] private float m_NeighbourScale = 0.8f;
 
         [Range(0, 70)] [SerializeField] private float m_PanStep = 20; // tilt, roll, pan
@@ -43,27 +45,26 @@ namespace Steft.SimpleCarousel.Layout
 
                 cell.rectTransform.localScale = Vector3.one * scale;
                 float cellWidth = cell.rectTransform.rect.width;
+                // for example, results in more overlap the further out we are
+                float cellOffsetFromCenterDepth = Mathf.Pow(cell.offsetFromCenterAbs, m_DepthScalePower);
 
                 posX =
                 (
-                    // for example for center and left neighbour:
+                    // for example, for center and left neighbour:
                     // right edge of the neighbour will align with left edge of the center
                     cellWidth +
 
                     // in which layer (how far out) this cell is
                     cellWidth * (cell.offsetFromCenterAbs - 1)
 
-                    //
-                    - (cellWidth * m_RelativeOverlap *
-                       // more overlap the further out we are
-                       cell.offsetFromCenterAbs * cell.offsetFromCenterAbs)
+                    // more overlap the further out we are
+                    - (cellWidth * m_RelativeOverlap * Mathf.Pow(cell.offsetFromCenterAbs, m_DepthScalePower))
                 ) * leftOrRight;
 
                 posY = 0;
-                posZ = m_DepthStep *
-                       // further back the further out we are
-                       cell.offsetFromCenterAbs * cell.offsetFromCenterAbs;
-                rotY = -m_PanStep * cell.offsetFromCenter;
+                // the further back the further out we are
+                posZ = m_DepthStep * Mathf.Pow(cell.offsetFromCenterAbs, m_DepthScalePower);
+                rotY = -m_PanStep  * cell.offsetFromCenter;
             }
 
             cell.rectTransform.localPosition = new Vector3(posX, posY, posZ);
