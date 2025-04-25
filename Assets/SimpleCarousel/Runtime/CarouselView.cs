@@ -21,19 +21,11 @@ namespace Steft.SimpleCarousel
         where TData : class, ICarouselData
     {
         // TODO
-        //  - element edge closer to the screen does not appear longer than element edge further away from the screen
-        //      how should we proceed? change everything to 3d?
-        //  - "OnValidate"
-        //  - refactor "Awake"
-        //  - stress test scrolling / swiping to avoid it malfunctioning
-        //  - add "developer API"
-        //  - "CustomEditor" for CarouselView if possible: warmup/preload all prefab instances (AssemblyInfo InternalsVisibleTo?)
         //  - cleanup .scene file and remove redundant sfield entries
         //  - add tooltip attributes to all sfields
         //  - add "summaries"
         //  - test on device
-        //  - add "Tests"
-        //  - decide if we want SmoothDamp towards center after drag ends
+        //  - finish setup of Unity Package
 
         [SerializeField] private UnityEvent<TData> m_OnCenterChanged = new();
 
