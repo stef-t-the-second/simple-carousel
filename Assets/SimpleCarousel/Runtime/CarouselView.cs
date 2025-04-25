@@ -117,7 +117,7 @@ namespace Steft.SimpleCarousel
                 return;
 
             int index = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
-            Debug.Log($"Center is index '{index}'");
+            Debug.Log($"Center is '{m_Data[index].name}' at index '{index}'");
             onCenterChanged.Invoke(m_Data[index]);
         }
 
