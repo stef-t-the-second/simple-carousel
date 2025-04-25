@@ -62,8 +62,12 @@ namespace Steft.SimpleCarousel
             get => m_CellPrefab;
             set
             {
+                bool changed = m_CellPrefab != value;
+
                 m_CellPrefab = value;
-                RebuildCells(true);
+
+                if (changed)
+                    RebuildCells(true);
             }
         }
 
@@ -149,6 +153,16 @@ namespace Steft.SimpleCarousel
         {
             // re-assigning will check all constraints defined through the property
             visibleElements = m_VisibleElements;
+
+            if (m_CellPrefab != null)
+            {
+                var carouselCell = m_CellPrefab.GetComponent<ICarouselCell<TData>>();
+                if (carouselCell == null)
+                {
+                    throw new NullReferenceException(
+                        $"'{nameof(m_CellPrefab)}' is missing component that implements '{nameof(ICarouselCell<TData>)}'");
+                }
+            }
         }
 
         private void Awake()
