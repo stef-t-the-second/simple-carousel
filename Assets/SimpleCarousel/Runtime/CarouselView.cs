@@ -192,7 +192,9 @@ namespace Steft.SimpleCarousel
                 return;
 
             m_CenterIndex = Mathf.SmoothDamp(
-                m_CenterIndex, m_TargetCenterIndex, ref m_CenterSmoothVelocity, m_CenterSmoothTime, 10);
+                m_CenterIndex, m_TargetCenterIndex,
+                ref m_CenterSmoothVelocity, m_CenterSmoothTime,
+                m_CenterSmoothTime * 4);
 
             if (Mathf.Abs(m_CenterSmoothVelocity)              < 0.01f &&
                 Mathf.Abs(m_TargetCenterIndex - m_CenterIndex) < 0.01f)
