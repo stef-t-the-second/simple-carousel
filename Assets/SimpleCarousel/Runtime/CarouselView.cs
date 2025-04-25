@@ -55,7 +55,8 @@ namespace Steft.SimpleCarousel
         private readonly LinkedList<CarouselCell<TData>> m_CellPool = new();
 
         // Potential improvement: Implement dependency injection to detect interface implementations
-        // on GameObject during compilation rather than runtime for earlier error detection
+        // on GameObject during compilation rather than runtime for earlier error detection.
+        // For now this is specifically implemented for these two in OnValidate.
         private IDeltaDragHandler          m_DeltaDragHandler;
         private ICarouselCellLayoutHandler m_CarouselCellLayoutHandler;
 
@@ -202,6 +203,8 @@ namespace Steft.SimpleCarousel
                         $"'{nameof(m_CellPrefab)}' is missing component that implements '{nameof(ICarouselCell<TData>)}'");
                 }
             }
+
+            OnEnable();
         }
 
         private void Awake()
@@ -220,14 +223,24 @@ namespace Steft.SimpleCarousel
             {
                 m_DeltaDragHandler = GetComponent<IDeltaDragHandler>();
                 if (m_DeltaDragHandler == null)
-                    throw new NullReferenceException($"{nameof(m_DeltaDragHandler)} cannot be null");
+                {
+                    throw new NullReferenceException(
+                        $"Component implementing '{nameof(IDeltaDragHandler)}', " +
+                        $"for example '{nameof(NormalizedDeltaDrag)}', "          +
+                        $"required on '{gameObject.name}'.");
+                }
             }
 
             if (m_CarouselCellLayoutHandler == null)
             {
                 m_CarouselCellLayoutHandler = GetComponent<ICarouselCellLayoutHandler>();
                 if (m_CarouselCellLayoutHandler == null)
-                    throw new NullReferenceException($"{nameof(m_CarouselCellLayoutHandler)} cannot be null");
+                {
+                    throw new NullReferenceException(
+                        $"Component implementing '{nameof(ICarouselCellLayoutHandler)}', " +
+                        $"for example '{nameof(CoverFlowLayout)}', "                       +
+                        $"required on '{gameObject.name}'.");
+                }
             }
         }
 
