@@ -33,9 +33,8 @@ namespace Steft.SimpleCarousel
         where TData : class, ICarouselData
     {
         // TODO:
-        // 1. Clean up scene file by removing redundant serialized field entries
-        // 2. Perform device testing for mobile compatibility
-        // 3. Complete Unity Package setup and documentation
+        // - Perform device testing for mobile compatibility
+        // - Complete Unity Package setup and documentation
 
         [Tooltip("Event invoked when the center item changes.")] [SerializeField]
         private UnityEvent<TData> m_OnCenterChanged = new();
