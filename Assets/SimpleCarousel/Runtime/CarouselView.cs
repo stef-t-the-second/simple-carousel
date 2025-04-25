@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Steft.SimpleCarousel.Animator;
 using Steft.SimpleCarousel.Drag;
 using Steft.SimpleCarousel.Layout;
 using UnityEngine;
@@ -32,12 +33,11 @@ namespace Steft.SimpleCarousel
     public class CarouselView<TData> : CarouselView, IBeginDragHandler, IEndDragHandler
         where TData : class, ICarouselData
     {
-        // TODO:
-        // - Perform device testing for mobile compatibility
-        // - Complete Unity Package setup and documentation
-
         [Tooltip("Event invoked when the center item changes.")] [SerializeField]
         private UnityEvent<TData> m_OnCenterChanged = new();
+
+        [Tooltip("Event invoked when the center item is clicked (or tapped).")] [SerializeField]
+        private UnityEvent<ICarouselCell> m_OnCenterClicked = new();
 
         [Space] [Min(3)] [Tooltip("Number of visible carousel cells (must be odd, minimum 3).")] [SerializeField]
         private int m_VisibleElements = 3;
@@ -58,6 +58,7 @@ namespace Steft.SimpleCarousel
         // For now this is specifically implemented for these two in OnValidate.
         private IDeltaDragHandler          m_DeltaDragHandler;
         private ICarouselCellLayoutHandler m_CarouselCellLayoutHandler;
+        private IRectTransformAnimator     m_RectTransformAnimator;
 
         private bool  m_IsAnimating;
         private float m_CenterIndex;
@@ -180,6 +181,25 @@ namespace Steft.SimpleCarousel
             return ((index % size) + size) % size;
         }
 
+        /// <summary>
+        ///     Handles click events on carousel cells, triggering animations and events when the center cell is clicked.
+        /// </summary>
+        /// <param name="cell">The carousel cell that was clicked.</param>
+        private void HandleCellClicked(ICarouselCell cell)
+        {
+            int centerIndex = GetCircularIndex(Mathf.RoundToInt(m_CenterIndex),       m_Data.Count);
+            int targetIndex = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
+            if (centerIndex == targetIndex && cell.index == targetIndex)
+            {
+                if (m_RectTransformAnimator != null)
+                {
+                    StartCoroutine(m_RectTransformAnimator.Animate(cell.rectTransform));
+                }
+
+                m_OnCenterClicked.Invoke(cell);
+            }
+        }
+
 #region Unity Methods
 
         private void OnValidate()
@@ -234,6 +254,12 @@ namespace Steft.SimpleCarousel
                         $"for example '{nameof(CoverFlowLayout)}', "                       +
                         $"required on '{gameObject.name}'.");
                 }
+            }
+
+            if (m_RectTransformAnimator == null)
+            {
+                m_RectTransformAnimator = GetComponent<IRectTransformAnimator>();
+                // there is no need to throw any exceptions as this is an optional dependency
             }
         }
 
@@ -367,9 +393,13 @@ namespace Steft.SimpleCarousel
             if (!force && transform.childCount == poolSize)
                 return;
 
-            foreach (Transform child in transform)
+            if (transform.childCount > 0)
             {
-                Destroy(child.gameObject);
+                foreach (var cell in m_CellPool)
+                {
+                    cell.onClicked.RemoveListener(HandleCellClicked);
+                    Destroy(cell.gameObject);
+                }
             }
 
             m_CellPool.Clear();
@@ -395,7 +425,8 @@ namespace Steft.SimpleCarousel
                 }
 
                 var cell = prefabInstance.GetComponent<CarouselCell<TData>>();
-                cell.index          = i   - 1;
+                cell.index = i - 1;
+                cell.onClicked.AddListener(HandleCellClicked);
                 prefabInstance.name = "[" + cell.index + "]";
                 m_CellPool.AddLast(cell);
 

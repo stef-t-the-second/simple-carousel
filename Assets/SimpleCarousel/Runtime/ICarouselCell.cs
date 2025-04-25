@@ -1,3 +1,5 @@
+using UnityEngine.Events;
+
 namespace Steft.SimpleCarousel
 {
     /// <summary>
@@ -9,7 +11,7 @@ namespace Steft.SimpleCarousel
         ///     Gets or sets the offset of the cell from the center position of the carousel.
         ///     Negative values indicate positions to the left, positive values to the right.
         /// </summary>
-        float offsetFromCenter { get; set; }
+        float offsetFromCenter { get; }
 
         /// <summary>
         ///     Gets the absolute value of the offset from center, representing the distance
@@ -20,7 +22,7 @@ namespace Steft.SimpleCarousel
         /// <summary>
         ///     Gets or sets the index position of the cell within the carousel's data collection.
         /// </summary>
-        int index { get; set; }
+        int index { get; }
     }
 
     /// <summary>
@@ -29,6 +31,11 @@ namespace Steft.SimpleCarousel
     /// <typeparam name="TData">The type of data contained in the cell.</typeparam>
     public interface ICarouselCell<out TData> : ICarouselCell where TData : class, ICarouselData
     {
+        /// <summary>
+        ///     The UnityEvent that is triggered when the cell is clicked.
+        /// </summary>
+        UnityEvent<ICarouselCell> onClicked { get; }
+
         /// <summary>
         ///     Gets the data associated with this carousel cell.
         /// </summary>
