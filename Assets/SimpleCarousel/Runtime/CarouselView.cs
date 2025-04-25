@@ -474,6 +474,30 @@ namespace Steft.SimpleCarousel
             }
         }
 
+        public void CenterNext(bool animated)
+        {
+            if (m_Data.Count == 0)
+            {
+                Debug.LogWarning("No items in list");
+                return;
+            }
+
+            int index = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
+            Center(index + 1, animated);
+        }
+
+        public void CenterPrevious(bool animated)
+        {
+            if (m_Data.Count == 0)
+            {
+                Debug.LogWarning("No items in list");
+                return;
+            }
+
+            int index = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
+            Center(index - 1, animated);
+        }
+
 #endregion
     }
 }
