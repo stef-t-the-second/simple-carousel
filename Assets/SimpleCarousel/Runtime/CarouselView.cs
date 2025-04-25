@@ -110,13 +110,9 @@ namespace Steft.SimpleCarousel
                 // 1. Minimum value allowed is 3 elements
                 // 2. Value must be an odd number to maintain a symmetrical layout
 
-                if (m_VisibleElements == value)
-                    return;
-
                 if (value < 3)
                 {
                     m_VisibleElements = 3;
-                    RebuildCells();
                     return;
                 }
 
@@ -125,12 +121,10 @@ namespace Steft.SimpleCarousel
                     // Round down even numbers to the nearest odd number
                     // Example: 4 becomes 3, 6 becomes 5
                     m_VisibleElements = value - 1;
-                    RebuildCells();
                     return;
                 }
 
                 m_VisibleElements = value;
-                RebuildCells();
             }
         }
 
@@ -244,7 +238,10 @@ namespace Steft.SimpleCarousel
 
         public void Update()
         {
-            UpdateCells();
+            if (transform.childCount != poolSize)
+                RebuildCells();
+            else
+                UpdateCells();
 
             if (Mathf.Approximately(m_CenterIndex, m_TargetCenterIndex))
                 return;
