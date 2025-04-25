@@ -251,8 +251,8 @@ namespace Steft.SimpleCarousel
                 ref m_CenterSmoothVelocity, m_CenterSmoothTime,
                 m_CenterSmoothTime * 4);
 
-            if (Mathf.Abs(m_CenterSmoothVelocity)              < 0.01f &&
-                Mathf.Abs(m_TargetCenterIndex - m_CenterIndex) < 0.01f)
+            if (Mathf.Abs(m_CenterSmoothVelocity)              < 0.05f &&
+                Mathf.Abs(m_TargetCenterIndex - m_CenterIndex) < 0.05f)
             {
                 m_TargetCenterIndex    = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
                 m_CenterIndex          = m_TargetCenterIndex;
