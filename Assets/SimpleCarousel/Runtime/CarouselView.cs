@@ -441,13 +441,13 @@ namespace Steft.SimpleCarousel
             if (animated)
             {
                 m_TargetCenterIndex = index;
+                // OnCenterChanged will be invoked when upon the animation ending
             }
             else
             {
                 m_CenterIndex = m_TargetCenterIndex = index;
+                InvokeOnCenterChangedWithCenterIndex();
             }
-
-            InvokeOnCenterChangedWithCenterIndex();
         }
 
         public void Center(TData item, bool animated)
