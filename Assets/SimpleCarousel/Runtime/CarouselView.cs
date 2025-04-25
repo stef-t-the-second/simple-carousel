@@ -237,7 +237,7 @@ namespace Steft.SimpleCarousel
             while (node != null)
             {
                 var nodeNext = node.Next; // caching next node before any changes to the linked list
-                node.Value.offsetFromCenter = node.Value.index - m_CenterIndex + m_DeltaDragHandler.totalDelta;
+                node.Value.offsetFromCenter = node.Value.index - m_CenterIndex + m_DeltaDragHandler.totalDelta.x;
 
                 // detecting overflow: cell is outside the allowed range
                 if (Mathf.Round(node.Value.offsetFromCenterAbs) > depth)

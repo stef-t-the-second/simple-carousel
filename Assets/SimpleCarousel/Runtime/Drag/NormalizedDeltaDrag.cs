@@ -10,8 +10,9 @@ namespace Steft.SimpleCarousel.Drag
         private Vector2       m_LastLocalCursor = Vector2.zero;
         private RectTransform m_RectTransform;
 
-        public float totalDelta { get; private set; }
-        public bool  isDragging { get; private set; }
+        public Vector2 totalDelta { get; private set; }
+
+        public bool isDragging { get; private set; }
 
         private void Awake()
         {
@@ -23,7 +24,7 @@ namespace Steft.SimpleCarousel.Drag
             if (isDragging) return;
             isDragging        = true;
             m_LastLocalCursor = Vector2.zero;
-            totalDelta        = 0f;
+            totalDelta        = Vector2.zero;
 
             // we need to initialize LastLocalCursor
             // to avoid big deltas during the first OnDrag call
@@ -53,7 +54,7 @@ namespace Steft.SimpleCarousel.Drag
             );
 
             var smoothedDelta = normalizedDelta * m_ScrollSensitivity;
-            totalDelta += smoothedDelta.x;
+            totalDelta += smoothedDelta;
 
             m_LastLocalCursor = localCursor;
         }
@@ -62,7 +63,7 @@ namespace Steft.SimpleCarousel.Drag
         {
             isDragging        = false;
             m_LastLocalCursor = Vector2.zero;
-            totalDelta        = 0f;
+            totalDelta        = Vector2.zero;
         }
     }
 }

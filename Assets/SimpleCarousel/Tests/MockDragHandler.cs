@@ -12,7 +12,7 @@ namespace Steft.SimpleCarousel
 
         public void OnDrag(PointerEventData eventData) { }
 
-        public float totalDelta { get; set; }
+        public Vector2 totalDelta { get; set; }
 
         public bool isDragging { get; set; }
     }
