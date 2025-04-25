@@ -11,20 +11,20 @@ using UnityEngine.UI;
 namespace Steft.SimpleCarousel
 {
     /// <summary>
-    /// Base class for carousel views that can display and manage a collection of cells.
+    ///     Base class for carousel views that can display and manage a collection of cells.
     /// </summary>
     public abstract class CarouselView : MonoBehaviour
     {
         /// <summary>
-        /// Rebuilds all cells in the carousel view.
+        ///     Rebuilds all cells in the carousel view.
         /// </summary>
         /// <param name="force">If true, forces a rebuild even if the number of cells matches the pool size.</param>
         internal abstract void RebuildCells(bool force = false);
     }
 
     /// <summary>
-    /// A carousel view component that displays and manages a collection of cells containing data of type TData.
-    /// Supports drag interactions and automatic cell recycling.
+    ///     A carousel view component that displays and manages a collection of cells containing data of type TData.
+    ///     Supports drag interactions and automatic cell recycling.
     /// </summary>
     /// <typeparam name="TData">The type of data to be displayed in the carousel cells.</typeparam>
     [RequireComponent(typeof(Image))]
@@ -40,10 +40,10 @@ namespace Steft.SimpleCarousel
         [Tooltip("Event invoked when the center item changes.")] [SerializeField]
         private UnityEvent<TData> m_OnCenterChanged = new();
 
-        [Space, Min(3), Tooltip("Number of visible carousel cells (must be odd, minimum 3).")] [SerializeField]
+        [Space] [Min(3)] [Tooltip("Number of visible carousel cells (must be odd, minimum 3).")] [SerializeField]
         private int m_VisibleElements = 3;
 
-        [Range(0.0001f, 20f), Tooltip("Duration of centering animation in seconds.")] [SerializeField]
+        [Range(0.0001f, 20f)] [Tooltip("Duration of centering animation in seconds.")] [SerializeField]
         private float m_CenterSmoothTime = 0.2f;
 
         [Tooltip("Prefab used to create carousel cells.")] [SerializeField]
@@ -66,7 +66,7 @@ namespace Steft.SimpleCarousel
         private float depthMinusMargin => depth - 0.5f;
 
         /// <summary>
-        /// Gets or sets the prefab used to instantiate carousel cells.
+        ///     Gets or sets the prefab used to instantiate carousel cells.
         /// </summary>
         internal CarouselCell<TData> cellPrefab
         {
@@ -83,23 +83,23 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Gets the read-only list of data items in the carousel.
+        ///     Gets the read-only list of data items in the carousel.
         /// </summary>
         internal IReadOnlyList<TData> data => m_Data;
 
         /// <summary>
-        /// Gets the depth of the carousel, representing how many cells can be displayed on each side of the center.
+        ///     Gets the depth of the carousel, representing how many cells can be displayed on each side of the center.
         /// </summary>
         internal int depth => (poolSize - 1) / 2;
 
         /// <summary>
-        /// Gets the total number of cells in the pool, including both visible and buffer cells.
+        ///     Gets the total number of cells in the pool, including both visible and buffer cells.
         /// </summary>
         internal int poolSize => m_VisibleElements + 2;
 
         /// <summary>
-        /// Gets or sets the number of visible elements in the carousel.
-        /// Must be an odd number greater than or equal to 3.
+        ///     Gets or sets the number of visible elements in the carousel.
+        ///     Must be an odd number greater than or equal to 3.
         /// </summary>
         public int visibleElements
         {
@@ -134,7 +134,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Event invoked when the centered item changes in the carousel.
+        ///     Event invoked when the centered item changes in the carousel.
         /// </summary>
         public UnityEvent<TData> onCenterChanged => m_OnCenterChanged;
 
@@ -149,7 +149,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Retrieves the cell currently positioned at the center of the carousel.
+        ///     Retrieves the cell currently positioned at the center of the carousel.
         /// </summary>
         /// <returns>The center cell of the carousel view.</returns>
         private CarouselCell<TData> GetCenterCell()
@@ -170,12 +170,12 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Calculates the circular index for a given index and size, ensuring the result is
-        /// within the range [0, <paramref name="size"/> - 1].
+        ///     Calculates the circular index for a given index and size, ensuring the result is
+        ///     within the range [0, <paramref name="size" /> - 1].
         /// </summary>
         /// <param name="index">The index to wrap within the circular range.</param>
         /// <param name="size">The size of the range. Must be greater than zero.</param>
-        /// <returns>The circular index, guaranteed to be in the range [0, <paramref name="size"/> - 1].</returns>
+        /// <returns>The circular index, guaranteed to be in the range [0, <paramref name="size" /> - 1].</returns>
         private int GetCircularIndex(int index, int size)
         {
             // Double Modulo Operation:
@@ -271,7 +271,7 @@ namespace Steft.SimpleCarousel
 #endregion
 
         /// <summary>
-        /// Updates the properties and layout of all cells in the carousel view based on their position relative to the center.
+        ///     Updates the properties and layout of all cells in the carousel view based on their position relative to the center.
         /// </summary>
         private void UpdateCells()
         {
@@ -400,7 +400,7 @@ namespace Steft.SimpleCarousel
 #region Public Methods
 
         /// <summary>
-        /// Adds a single item to the carousel.
+        ///     Adds a single item to the carousel.
         /// </summary>
         /// <param name="item">The item to add.</param>
         public void Add(TData item)
@@ -415,7 +415,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Adds multiple items to the carousel.
+        ///     Adds multiple items to the carousel.
         /// </summary>
         /// <param name="items">The collection of items to add.</param>
         public void Add(IReadOnlyList<TData> items)
@@ -439,7 +439,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Inserts an item at the specified index in the carousel.
+        ///     Inserts an item at the specified index in the carousel.
         /// </summary>
         /// <param name="index">The index at which to insert the item.</param>
         /// <param name="item">The item to insert.</param>
@@ -461,7 +461,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Inserts multiple items at the specified index in the carousel.
+        ///     Inserts multiple items at the specified index in the carousel.
         /// </summary>
         /// <param name="index">The index at which to insert the items.</param>
         /// <param name="items">The collection of items to insert.</param>
@@ -484,7 +484,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Removes all items from the carousel.
+        ///     Removes all items from the carousel.
         /// </summary>
         public void RemoveAll()
         {
@@ -493,7 +493,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Removes a specific item from the carousel.
+        ///     Removes a specific item from the carousel.
         /// </summary>
         /// <param name="item">The item to remove.</param>
         /// <returns>True if the item was successfully removed; otherwise, false.</returns>
@@ -509,7 +509,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Centers the carousel on the item at the specified index.
+        ///     Centers the carousel on the item at the specified index.
         /// </summary>
         /// <param name="index">The index of the item to center.</param>
         /// <param name="animated">If true, animates the centering movement.</param>
@@ -536,7 +536,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Centers the carousel on the specified item.
+        ///     Centers the carousel on the specified item.
         /// </summary>
         /// <param name="item">The item to center.</param>
         /// <param name="animated">If true, animates the centering movement.</param>
@@ -560,7 +560,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Centers the carousel on the next item.
+        ///     Centers the carousel on the next item.
         /// </summary>
         /// <param name="animated">If true, animates the centering movement.</param>
         public void CenterNext(bool animated)
@@ -576,7 +576,7 @@ namespace Steft.SimpleCarousel
         }
 
         /// <summary>
-        /// Centers the carousel on the previous item.
+        ///     Centers the carousel on the previous item.
         /// </summary>
         /// <param name="animated">If true, animates the centering movement.</param>
         public void CenterPrevious(bool animated)

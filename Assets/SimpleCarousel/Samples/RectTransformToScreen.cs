@@ -20,10 +20,7 @@ namespace Steft.SimpleCarousel.Samples
         }
 
 #if UNITY_EDITOR
-        private void Update()
-        {
-            m_RectTransform.sizeDelta = new Vector2(Screen.width, Screen.height);
-        }
+        private void Update() => m_RectTransform.sizeDelta = new Vector2(Screen.width, Screen.height);
 #endif
     }
 }

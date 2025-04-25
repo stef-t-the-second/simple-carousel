@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Steft.SimpleCarousel
 {
     /// <summary>
-    /// Base class for carousel cells that can display data and be positioned within a carousel view.
+    ///     Base class for carousel cells that can display data and be positioned within a carousel view.
     /// </summary>
     /// <typeparam name="TData">The type of data to be displayed in the cell.</typeparam>
     public abstract class CarouselCell<TData> : MonoBehaviour, ICarouselCell<TData> where TData : class, ICarouselData

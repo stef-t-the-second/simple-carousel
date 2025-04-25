@@ -27,7 +27,7 @@ namespace Steft.SimpleCarousel
                     new MockData { name = "2" },
                     new MockData { name = "3" },
                     new MockData { name = "4" },
-                    new MockData { name = "5" },
+                    new MockData { name = "5" }
                 }
             };
 

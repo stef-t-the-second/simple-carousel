@@ -4,14 +4,14 @@ using UnityEngine.EventSystems;
 namespace Steft.SimpleCarousel.Drag
 {
     /// <summary>
-    /// The NormalizedDeltaDrag class implements the <see cref="IDeltaDragHandler"/> interface
-    /// to handle drag events in a way that normalizes delta values based on
-    /// the size of the associated <see cref="RectTransform"/>.
+    ///     The NormalizedDeltaDrag class implements the <see cref="IDeltaDragHandler" /> interface
+    ///     to handle drag events in a way that normalizes delta values based on
+    ///     the size of the associated <see cref="RectTransform" />.
     /// </summary>
     /// <remarks>
-    /// This script is intended to be used in Unity for components requiring
-    /// normalized drag input handling. The normalized delta is calculated
-    /// relative to the <see cref="RectTransform"/>'s dimensions.
+    ///     This script is intended to be used in Unity for components requiring
+    ///     normalized drag input handling. The normalized delta is calculated
+    ///     relative to the <see cref="RectTransform" />'s dimensions.
     /// </remarks>
     public class NormalizedDeltaDrag : MonoBehaviour, IDeltaDragHandler
     {
@@ -21,12 +21,12 @@ namespace Steft.SimpleCarousel.Drag
         private float m_ScrollSensitivity = 10f;
 
         /// <summary>
-        /// Stores the last known local cursor position in the coordinate space of the associated <see cref="RectTransform"/>.
+        ///     Stores the last known local cursor position in the coordinate space of the associated <see cref="RectTransform" />.
         /// </summary>
         private Vector2 m_LastLocalCursor = Vector2.zero;
 
         /// <summary>
-        /// The RectTransform used to calculate normalized drag deltas.
+        ///     The RectTransform used to calculate normalized drag deltas.
         /// </summary>
         private RectTransform m_RectTransform;
 
@@ -34,10 +34,7 @@ namespace Steft.SimpleCarousel.Drag
 
         public bool isDragging { get; private set; }
 
-        private void Awake()
-        {
-            m_RectTransform = transform as RectTransform;
-        }
+        private void Awake() => m_RectTransform = transform as RectTransform;
 
         public void OnBeginDrag(PointerEventData eventData)
         {

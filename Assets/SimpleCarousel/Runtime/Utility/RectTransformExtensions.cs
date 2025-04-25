@@ -3,12 +3,12 @@ using UnityEngine;
 namespace Steft.SimpleCarousel
 {
     /// <summary>
-    /// Provides extension methods for <see cref="RectTransform"/>.
+    ///     Provides extension methods for <see cref="RectTransform" />.
     /// </summary>
     public static class RectTransformExtensions
     {
         /// <summary>
-        /// Resets a RectTransform to the middle center position with default anchor and pivot settings.
+        ///     Resets a RectTransform to the middle center position with default anchor and pivot settings.
         /// </summary>
         public static void ResetToMiddleCenter(this RectTransform rectTransform)
         {

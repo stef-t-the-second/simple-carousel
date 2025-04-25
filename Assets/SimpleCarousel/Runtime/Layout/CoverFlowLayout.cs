@@ -3,14 +3,14 @@ using UnityEngine;
 namespace Steft.SimpleCarousel.Layout
 {
     /// <summary>
-    /// Handles the layout management for a carousel in a Cover Flow style (https://en.wikipedia.org/wiki/Cover_Flow).
-    /// This class implements the <see cref="ICarouselCellLayoutHandler"/> interface to dynamically
-    /// arrange carousel cells based on their offset from the center position.
+    ///     Handles the layout management for a carousel in a Cover Flow style (https://en.wikipedia.org/wiki/Cover_Flow).
+    ///     This class implements the <see cref="ICarouselCellLayoutHandler" /> interface to dynamically
+    ///     arrange carousel cells based on their offset from the center position.
     /// </summary>
     /// <remarks>
-    /// The Cover Flow layout visually organizes items within a carousel by applying scaling, spacing,
-    /// depth, and rotation effects. It achieves smooth transitions for focus change, making the center
-    /// cell the focal point while progressively modifying the appearance of the neighboring cells.
+    ///     The Cover Flow layout visually organizes items within a carousel by applying scaling, spacing,
+    ///     depth, and rotation effects. It achieves smooth transitions for focus change, making the center
+    ///     cell the focal point while progressively modifying the appearance of the neighboring cells.
     /// </remarks>
     /// <seealso cref="Steft.SimpleCarousel.ICarouselCell" />
     /// <seealso cref="Steft.SimpleCarousel.Layout.ICarouselCellLayoutHandler" />
@@ -42,23 +42,22 @@ namespace Steft.SimpleCarousel.Layout
         private float m_DepthStep = 80;
 
         /// <summary>
-        /// Updates the position, rotation, and scale of a carousel cell based on its offset from the center.
+        ///     Updates the position, rotation, and scale of a carousel cell based on its offset from the center.
         /// </summary>
         /// <param name="cell">The carousel cell to update.</param>
         /// <remarks>
-        /// For center cells (offset = 0):
-        /// <ul>
-        /// <li>Scale is set to 1</li>
-        /// <li>Position is at origin (0,0,0)</li>
-        /// <li>No rotation applied</li>
-        /// </ul>
-        ///
-        /// For non-center cells:
-        /// <ul>
-        /// <li>Scale decreases based on distance from center</li>
-        /// <li>Position calculated using cell width, overlap, and depth effects</li>
-        /// <li>Rotation increases with distance from center</li>
-        /// </ul>
+        ///     For center cells (offset = 0):
+        ///     <ul>
+        ///         <li>Scale is set to 1</li>
+        ///         <li>Position is at origin (0,0,0)</li>
+        ///         <li>No rotation applied</li>
+        ///     </ul>
+        ///     For non-center cells:
+        ///     <ul>
+        ///         <li>Scale decreases based on distance from center</li>
+        ///         <li>Position calculated using cell width, overlap, and depth effects</li>
+        ///         <li>Rotation increases with distance from center</li>
+        ///     </ul>
         /// </remarks>
         public void UpdateLayout(ICarouselCell cell)
         {
@@ -93,7 +92,7 @@ namespace Steft.SimpleCarousel.Layout
                 posX =
                 (
                     cellWidth +
-                    cellWidth * (cell.offsetFromCenterAbs - 1) -
+                    (cellWidth * (cell.offsetFromCenterAbs - 1)) -
                     (cellWidth * m_RelativeOverlap * Mathf.Pow(cell.offsetFromCenterAbs, m_DepthScalePower))
                 ) * leftOrRight;
 
