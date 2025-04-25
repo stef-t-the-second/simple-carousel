@@ -573,8 +573,6 @@ namespace Steft.SimpleCarousel
                 return;
             }
 
-            index = GetCircularIndex(index, m_Data.Count);
-
             if (animated)
             {
                 m_TargetCenterIndex = index;
