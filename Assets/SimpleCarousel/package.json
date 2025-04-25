@@ -1,0 +1,25 @@
+{
+  "name": "com.steft.simplecarousel",
+  "version": "1.0.0",
+  "displayName": "Simple Carousel",
+  "description": "A flexible and easy-to-use carousel UI component for Unity.",
+  "unity": "2022.3.53f1",
+  "license": "MIT",
+  "keywords": [
+    "ui",
+    "carousel",
+    "scroll"
+  ],
+  "author": {
+    "name": "steft",
+    "email": "",
+    "url": "https://github.com/stef-t/simple-carousel/"
+  },
+  "samples": [
+    {
+      "displayName": "Fruits and Vegetables",
+      "description": "Shows a basic implementation of the CarouselView.",
+      "path": "Samples~/Fruits and Vegetables"
+    }
+  ]
+}
