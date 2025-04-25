@@ -59,6 +59,7 @@ namespace Steft.SimpleCarousel
         private IDeltaDragHandler          m_DeltaDragHandler;
         private ICarouselCellLayoutHandler m_CarouselCellLayoutHandler;
 
+        private bool  m_IsAnimating;
         private float m_CenterIndex;
         private float m_TargetCenterIndex;
         private float m_CenterSmoothVelocity;
@@ -244,7 +245,12 @@ namespace Steft.SimpleCarousel
                 UpdateCells();
 
             if (Mathf.Approximately(m_CenterIndex, m_TargetCenterIndex))
+            {
+                m_IsAnimating = false;
                 return;
+            }
+
+            m_IsAnimating = true;
 
             m_CenterIndex = Mathf.SmoothDamp(
                 m_CenterIndex, m_TargetCenterIndex,
@@ -524,6 +530,12 @@ namespace Steft.SimpleCarousel
         /// <param name="animated">If true, animates the centering movement.</param>
         public void Center(int index, bool animated)
         {
+            if (m_IsAnimating)
+            {
+                Debug.LogWarning($"Cannot center '{index}', while animation is ongoing");
+                return;
+            }
+
             if (m_Data.Count == 0)
             {
                 Debug.LogWarning("No items in list");
