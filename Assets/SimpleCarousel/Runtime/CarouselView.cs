@@ -197,6 +197,7 @@ namespace Steft.SimpleCarousel
             if (Mathf.Abs(m_CenterSmoothVelocity)              < 0.01f &&
                 Mathf.Abs(m_TargetCenterIndex - m_CenterIndex) < 0.01f)
             {
+                m_TargetCenterIndex    = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
                 m_CenterIndex          = m_TargetCenterIndex;
                 m_CenterSmoothVelocity = 0f;
                 InvokeOnCenterChangedWithCenterIndex();
@@ -432,11 +433,13 @@ namespace Steft.SimpleCarousel
 
         public void Center(int index, bool animated)
         {
-            if (index < 0 || index >= m_Data.Count)
+            if (m_Data.Count == 0)
             {
-                Debug.LogError($"Passed '{nameof(index)}' {index} is out of range");
+                Debug.LogWarning("No items in list");
                 return;
             }
+
+            index = GetCircularIndex(index, m_Data.Count);
 
             if (animated)
             {
