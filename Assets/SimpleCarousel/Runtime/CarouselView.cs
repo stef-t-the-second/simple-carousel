@@ -106,9 +106,9 @@ namespace Steft.SimpleCarousel
             get => m_VisibleElements;
             set
             {
-                // constraints:
-                // - minimum is 3
-                // - must be an odd number
+                // Validation constraints:
+                // 1. Minimum value allowed is 3 elements
+                // 2. Value must be an odd number to maintain a symmetrical layout
 
                 if (m_VisibleElements == value)
                     return;
@@ -122,7 +122,8 @@ namespace Steft.SimpleCarousel
 
                 if (value % 2 == 0)
                 {
-                    // minimum even number is 4
+                    // Round down even numbers to the nearest odd number
+                    // Example: 4 becomes 3, 6 becomes 5
                     m_VisibleElements = value - 1;
                     RebuildCells();
                     return;
