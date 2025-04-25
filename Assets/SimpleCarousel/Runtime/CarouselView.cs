@@ -35,7 +35,7 @@ namespace Steft.SimpleCarousel
         //  - add "Tests"
         //  - decide if we want SmoothDamp towards center after drag ends
 
-        [SerializeField] private UnityEvent<TData> m_OnCenterChanged;
+        [SerializeField] private UnityEvent<TData> m_OnCenterChanged = new();
 
         [Space, Min(3), SerializeField]       private int   m_VisibleElements  = 3;
         [Range(0.0001f, 20f), SerializeField] private float m_CenterSmoothTime = 0.2f;
