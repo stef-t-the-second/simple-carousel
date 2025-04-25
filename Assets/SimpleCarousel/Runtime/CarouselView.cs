@@ -232,7 +232,10 @@ namespace Steft.SimpleCarousel
         private void UpdateCells()
         {
             if (transform.childCount == 0)
+            {
+                RebuildCells();
                 return;
+            }
 
             var node = m_CellPool.First;
 
