@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -52,6 +53,8 @@ namespace Steft.SimpleCarousel
             Object.Destroy(m_SUT.gameObject);
         }
 
+#region Unity Methods
+
         [Test]
         public void Awake_HasChildren()
         {
@@ -65,6 +68,10 @@ namespace Steft.SimpleCarousel
             Assert.That(m_SUT.transform.childCount, Is.EqualTo(m_SUT.poolSize));
         }
 
+#endregion
+
+#region Visible Elements
+
         [Test]
         [TestCase(0, 3)]
         [TestCase(4, 3)]
@@ -77,6 +84,10 @@ namespace Steft.SimpleCarousel
             Assert.That(m_SUT.visibleElements,      Is.EqualTo(expected));
             Assert.That(m_SUT.transform.childCount, Is.EqualTo(expected));
         }
+
+#endregion
+
+#region Add
 
         [Test]
         [TestCaseSource(nameof(mockDataArrays))]
@@ -102,13 +113,92 @@ namespace Steft.SimpleCarousel
             Assert.That(m_SUT.data, Is.Not.Empty);
         }
 
+#endregion
+
+#region Remove
+
         [Test]
-        [TestCaseSource(nameof(mockDataArrays))]
-        public void OnCenterChanged()
+        public void Data_RemoveAll()
+        {
+            Assert.That(m_SUT.data, Is.Empty);
+            var data = mockDataArrays[0] as MockData[];
+            Assert.That(data,        Is.Not.Null);
+            Assert.That(data.Length, Is.EqualTo(5));
+            m_SUT.Add(data);
+            Assert.That(m_SUT.data.Count, Is.EqualTo(data.Length));
+
+            m_SUT.RemoveAll();
+
+            Assert.That(m_SUT.data,       Is.Not.Null);
+            Assert.That(m_SUT.data.Count, Is.Zero);
+        }
+
+#endregion
+
+#region OnCenterChanged
+
+        [Test]
+        public void OnCenterChanged_Invoke()
         {
             Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
 
-            
+            bool called = false;
+            m_SUT.onCenterChanged.AddListener(_ =>
+            {
+                called = true;
+            });
+
+            m_SUT.onCenterChanged.Invoke(new MockData { name = nameof(OnCenterChanged_Invoke) });
+            Task.Delay(50);
+
+            Assert.That(called, Is.True);
         }
+
+        [Test]
+        public void OnCenterChanged_Center()
+        {
+            Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
+            Assert.That(m_SUT.data,            Is.Empty);
+
+            var data = mockDataArrays[0] as MockData[];
+            Assert.That(data.Length, Is.EqualTo(5));
+            m_SUT.Add(data);
+
+            MockData dataReceived = null;
+            m_SUT.onCenterChanged.AddListener(d => dataReceived = d);
+
+            m_SUT.Center(2, false);
+            Task.Delay(50);
+
+            Assert.That(dataReceived.name, Is.EqualTo(data[2].name));
+        }
+
+        [Test]
+        public void OnCenterChanged_RebuildCells()
+        {
+            Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
+            Assert.That(m_SUT.data,            Is.Empty);
+
+            var data = mockDataArrays[0] as MockData[];
+            Assert.That(data,        Is.Not.Null);
+            Assert.That(data.Length, Is.EqualTo(5));
+            m_SUT.Add(data);
+            m_SUT.visibleElements = data.Length;
+
+            MockData dataReceived = null;
+            m_SUT.onCenterChanged.AddListener(d =>
+            {
+                Debug.Log("Received: " + d.name);
+                dataReceived = d;
+            });
+
+            m_SUT.RebuildCells(true);
+            Task.Delay(50);
+
+            Assert.That(dataReceived,      Is.Not.Null);
+            Assert.That(dataReceived.name, Is.EqualTo(data[2].name));
+        }
+
+#endregion
     }
 }

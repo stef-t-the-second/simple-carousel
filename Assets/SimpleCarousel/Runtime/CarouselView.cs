@@ -107,6 +107,16 @@ namespace Steft.SimpleCarousel
 
         public UnityEvent<TData> onCenterChanged => m_OnCenterChanged;
 
+        private void InvokeOnCenterChangedWithCenterIndex()
+        {
+            if (m_Data.Count == 0)
+                return;
+
+            int index = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
+            Debug.Log($"Center is index '{index}'");
+            onCenterChanged.Invoke(m_Data[index]);
+        }
+
         private CarouselCell<TData> GetCenterCell()
         {
             var center = m_CellPool.First;
@@ -183,6 +193,7 @@ namespace Steft.SimpleCarousel
             {
                 m_CenterIndex          = m_TargetCenterIndex;
                 m_CenterSmoothVelocity = 0f;
+                InvokeOnCenterChangedWithCenterIndex();
             }
         }
 
@@ -322,6 +333,7 @@ namespace Steft.SimpleCarousel
             m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
             OnEnable();
             UpdateCells();
+            InvokeOnCenterChangedWithCenterIndex();
         }
 
 #region Public Methods
@@ -425,6 +437,8 @@ namespace Steft.SimpleCarousel
             {
                 m_CenterIndex = m_TargetCenterIndex = index;
             }
+
+            InvokeOnCenterChangedWithCenterIndex();
         }
 
         public void Center(TData item, bool animated)
