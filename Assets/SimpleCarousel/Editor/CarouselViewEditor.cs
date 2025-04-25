@@ -33,6 +33,9 @@ namespace Steft.SimpleCarousel
             base.OnInspectorGUI();
             bool changed = EditorGUI.EndChangeCheck();
 
+            if (Application.isPlaying)
+                return;
+
             if (carouselView.transform.childCount == 0)
             {
                 carouselView.RebuildCells();
