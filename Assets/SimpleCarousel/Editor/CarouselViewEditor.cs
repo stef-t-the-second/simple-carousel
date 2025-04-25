@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace Steft.SimpleCarousel
 {
+    /// <summary>
+    /// Custom editor for the <see cref="CarouselView{TData}"/> component.
+    /// Includes automatic cell rebuilding when properties change in the editor and
+    /// a manual rebuild button.
+    /// </summary>
     [CustomEditor(typeof(CarouselView<>), true)]
     internal class CarouselViewEditor : Editor
     {
@@ -19,6 +24,10 @@ namespace Steft.SimpleCarousel
             }
         }
 
+        /// <summary>
+        /// Destroys all immediate child GameObjects of the given transform.
+        /// </summary>
+        /// <param name="transform">The parent transform whose children will be destroyed.</param>
         private void DestroyChildren(Transform transform)
         {
             while (transform.childCount > 0)

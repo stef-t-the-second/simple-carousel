@@ -2,9 +2,14 @@ using UnityEngine;
 
 namespace Steft.SimpleCarousel
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="RectTransform"/>.
+    /// </summary>
     public static class RectTransformExtensions
     {
-        // will reset local position
+        /// <summary>
+        /// Resets a RectTransform to the middle center position with default anchor and pivot settings.
+        /// </summary>
         public static void ResetToMiddleCenter(this RectTransform rectTransform)
         {
             rectTransform.anchoredPosition = Vector2.zero;
