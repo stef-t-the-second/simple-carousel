@@ -618,6 +618,199 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &823320784
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 823320785}
+  - component: {fileID: 823320788}
+  - component: {fileID: 823320787}
+  - component: {fileID: 823320791}
+  - component: {fileID: 823320786}
+  - component: {fileID: 823320790}
+  - component: {fileID: 823320789}
+  m_Layer: 5
+  m_Name: ProduceCarousel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &823320785
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 825376686}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -200, y: -200}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &823320786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248302d1ef564c2e943d8a04c3ece179, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OnCenterChanged:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 823320791}
+        m_TargetAssemblyTypeName: Steft.SimpleCarousel.Samples.CenterChangedHandler,
+          Steft.SimpleCarousel.Samples
+        m_MethodName: Handle
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  m_VisibleElements: 5
+  m_CenterSmoothTime: 0.3
+  m_CellPrefab: {fileID: 927257489463021833}
+  m_Data:
+  - m_Name: Banana
+    m_Description: A widely consumed tropical fruit known for its convenient peel,
+      soft texture, and potassium content.
+    m_ImageName: banana
+  - m_Name: Apple
+    m_Description: A crisp, versatile fruit grown globally in many varieties, eaten
+      fresh or used in cooking and baking.
+    m_ImageName: apple
+  - m_Name: Orange
+    m_Description: A popular citrus fruit valued for its refreshing juice and high
+      concentration of Vitamin C.
+    m_ImageName: orange
+  - m_Name: Grape
+    m_Description: Small, sweet fruits grown in bunches, enjoyed fresh as snacks
+      or processed into wine, juice, and raisins.
+    m_ImageName: grape
+  - m_Name: Strawberry
+    m_Description: A sweet, red, heart-shaped berry favoured fresh, in desserts,
+      jams, and flavourings.
+    m_ImageName: strawberry
+  - m_Name: Potato
+    m_Description: A starchy tuber grown underground, serving as a versatile staple
+      food cooked in countless ways.
+    m_ImageName: potato
+  - m_Name: Tomato
+    m_Description: A globally popular fruit used culinarily as a vegetable, essential
+      in sauces, salads, and many cooked dishes.
+    m_ImageName: tomato
+  - m_Name: Onion
+    m_Description: A pungent bulb vegetable that forms the flavour base for a vast
+      array of savoury dishes worldwide.
+    m_ImageName: onion
+  - m_Name: Lettuce
+    m_Description: A leafy green vegetable most commonly eaten raw as the primary
+      ingredient in salads.
+    m_ImageName: lettuce
+  - m_Name: Carrot
+    m_Description: A crunchy, sweet root vegetable, typically orange, known for being
+      rich in Vitamin A.
+    m_ImageName: carrot
+--- !u!114 &823320787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &823320788
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_CullTransparentMesh: 1
+--- !u!114 &823320789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89bd1311935948d7be388eed9923215b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RelativeOverlap: 0.2
+  m_DepthScalePower: 1.5
+  m_NeighbourScale: 0.85
+  m_PanStep: 14
+  m_DepthStep: 140
+--- !u!114 &823320790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34176f673482456d96a4f44dc48c8c42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ScrollSensitivity: 10
+--- !u!114 &823320791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 823320784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a137241fbfde4559b844b0f216b8865, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &825376682
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,8 +906,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1824308482}
   - {fileID: 6787907093479867187}
+  - {fileID: 823320785}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -817,173 +1010,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1824308481
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1824308482}
-  - component: {fileID: 1824308485}
-  - component: {fileID: 1824308484}
-  - component: {fileID: 1824308488}
-  - component: {fileID: 1824308486}
-  - component: {fileID: 1824308487}
-  m_Layer: 5
-  m_Name: Produce Carousel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1824308482
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824308481}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 825376686}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -200, y: -200}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1824308484
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824308481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1824308485
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824308481}
-  m_CullTransparentMesh: 1
---- !u!114 &1824308486
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824308481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34176f673482456d96a4f44dc48c8c42, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ScrollSensitivity: 10
---- !u!114 &1824308487
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824308481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89bd1311935948d7be388eed9923215b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_RelativeOverlap: 0.2
-  m_DepthScalePower: 1.5
-  m_NeighbourScale: 0.85
-  m_PanStep: 14
-  m_DepthStep: 140
---- !u!114 &1824308488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824308481}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 248302d1ef564c2e943d8a04c3ece179, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_OnCenterChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_VisibleElements: 5
-  m_CenterSmoothTime: 0.2
-  m_CellPrefab: {fileID: 927257489463021833}
-  m_Data:
-  - m_Name: Banana
-    m_Description: A widely consumed tropical fruit known for its convenient peel,
-      soft texture, and potassium content.
-    m_ImageName: banana
-  - m_Name: Apple
-    m_Description: A crisp, versatile fruit grown globally in many varieties, eaten
-      fresh or used in cooking and baking.
-    m_ImageName: apple
-  - m_Name: Orange
-    m_Description: A popular citrus fruit valued for its refreshing juice and high
-      concentration of Vitamin C.
-    m_ImageName: orange
-  - m_Name: Grape
-    m_Description: Small, sweet fruits grown in bunches, enjoyed fresh as snacks
-      or processed into wine, juice, and raisins.
-    m_ImageName: grape
-  - m_Name: Strawberry
-    m_Description: A sweet, red, heart-shaped berry favoured fresh, in desserts,
-      jams, and flavourings.
-    m_ImageName: strawberry
-  - m_Name: Potato
-    m_Description: A starchy tuber grown underground, serving as a versatile staple
-      food cooked in countless ways.
-    m_ImageName: potato
-  - m_Name: Tomato
-    m_Description: A globally popular fruit used culinarily as a vegetable, essential
-      in sauces, salads, and many cooked dishes.
-    m_ImageName: tomato
-  - m_Name: Onion
-    m_Description: A pungent bulb vegetable that forms the flavour base for a vast
-      array of savoury dishes worldwide.
-    m_ImageName: onion
-  - m_Name: Lettuce
-    m_Description: A leafy green vegetable most commonly eaten raw as the primary
-      ingredient in salads.
-    m_ImageName: lettuce
-  - m_Name: Carrot
-    m_Description: A crunchy, sweet root vegetable, typically orange, known for being
-      rich in Vitamin A.
-    m_ImageName: carrot
 --- !u!1 &1835485328
 GameObject:
   m_ObjectHideFlags: 0
