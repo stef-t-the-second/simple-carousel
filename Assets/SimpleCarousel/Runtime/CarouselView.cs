@@ -259,7 +259,7 @@ namespace Steft.SimpleCarousel
             if (transform.childCount != poolSize)
                 RebuildCells();
             else
-                UpdateCells();
+                RefreshView();
 
             if (Mathf.Approximately(m_CenterIndex, m_TargetCenterIndex))
             {
@@ -305,7 +305,7 @@ namespace Steft.SimpleCarousel
         /// <summary>
         ///     Updates the properties and layout of all cells in the carousel view based on their position relative to the center.
         /// </summary>
-        internal void UpdateCells()
+        internal void RefreshView()
         {
             if (transform.childCount == 0)
             {
@@ -314,51 +314,85 @@ namespace Steft.SimpleCarousel
             }
 
             var node = m_CellPool.First;
-
             while (node != null)
             {
                 // Cache the next node reference before modifying the linked list to maintain iteration integrity
                 var nodeNext = node.Next;
-                node.Value.offsetFromCenter = node.Value.index - m_CenterIndex + m_DeltaDragHandler.totalDelta.x;
+                var cell = node.Value;
 
-                // Detecting overflow: Cell is outside the allowed range
-                if (Mathf.Round(node.Value.offsetFromCenterAbs) > depth)
-                {
-                    // Positive: Rightmost element needs to be moved to front
-                    if (node.Value.offsetFromCenter > 0)
-                    {
-                        m_CellPool.Remove(node);
-                        m_CellPool.AddFirst(node);
-                        node.Value.index = node.Next!.Value.index - 1;
-                    }
-
-                    // Negative: Leftmost element needs to be moved to back
-                    if (node.Value.offsetFromCenter < 0)
-                    {
-                        m_CellPool.Remove(node);
-                        m_CellPool.AddLast(node);
-                        node.Value.index = node.Previous!.Value.index + 1;
-                    }
-                }
+                cell.offsetFromCenter = cell.index - m_CenterIndex + m_DeltaDragHandler.totalDelta.x;
+                HandleCellWrapping(node);
 
                 // Add visibility margin to smooth transition of elements entering/leaving view
-                node.Value.gameObject.SetActive(
-                    node.Value.offsetFromCenterAbs < depthMinusMargin
-                );
+                cell.gameObject.SetActive(cell.offsetFromCenterAbs < depthMinusMargin);
 
-                if (m_Data.Count > 0)
-                {
-                    int dataIndex = GetCircularIndex(node.Value.index, m_Data.Count);
-                    if (node.Value.data != m_Data[dataIndex])
-                    {
-                        node.Value.data = m_Data[dataIndex];
-                    }
-                }
-
+                RefreshCellDataIfNeeded(node.Value);
                 m_CarouselCellLayoutHandler.UpdateLayout(node.Value);
+
                 node = nodeNext;
             }
 
+            RefreshCellsRenderOrder();
+        }
+
+        /// <summary>
+        /// Checks if a cell has moved outside the visible <see cref="depth"/> and wraps it around
+        /// by moving it to the other end of the cell pool and updating its index.
+        /// </summary>
+        /// <param name="node">The linked list node containing the cell to check.</param>
+        private void HandleCellWrapping(LinkedListNode<CarouselCell<TData>> node)
+        {
+            var cell = node.Value;
+
+            // Check if the cell is outside the allowed range.
+            if (Mathf.Round(cell.offsetFromCenterAbs) <= depth)
+            {
+                return; // Cell is within the allowed range, no wrapping needed.
+            }
+
+            if (cell.offsetFromCenter > 0)
+            {
+                // Positive offset overflow: Rightmost cell wraps to the beginning.
+                m_CellPool.Remove(node);
+                m_CellPool.AddFirst(node);
+                // Update index based on the new next element (which was the previous first).
+                cell.index = node.Next!.Value.index - 1;
+            }
+            else
+            {
+                // Negative offset overflow: Leftmost cell wraps to the end.
+                m_CellPool.Remove(node);
+                m_CellPool.AddLast(node);
+                // Update index based on the new previous element (which was the previous last).
+                cell.index = node.Previous!.Value.index + 1;
+            }
+        }
+
+        /// <summary>
+        /// Updates the data associated with a cell if it has changed.
+        /// </summary>
+        /// <param name="cell">The cell whose data needs to be checked and potentially updated.</param>
+        private void RefreshCellDataIfNeeded(CarouselCell<TData> cell)
+        {
+            if (m_Data.Count == 0)
+                return;
+
+            int dataIndex = GetCircularIndex(cell.index, m_Data.Count);
+            var targetData = m_Data[dataIndex];
+
+            // Update cell data only if it has changed.
+            if (cell.data != targetData)
+            {
+                cell.data = targetData;
+            }
+        }
+
+        /// <summary>
+        /// Updates the sibling index of each cell in the pool to control the rendering order.
+        /// Cells closer to the center are given a higher sibling index to appear in front.
+        /// </summary>
+        private void RefreshCellsRenderOrder()
+        {
             // Set sibling indices to control render order:
             // - Center cell should be rendered last (frontmost)
             // - Cells further from center are rendered earlier (further back)
@@ -369,6 +403,8 @@ namespace Steft.SimpleCarousel
 
             for (int i = 0; i < cellsOrderedByOffset.Length; i++)
             {
+                // The cell closest to the center (i=0) gets the highest sibling index (count - 1).
+                // The cell furthest from the center (i=count-1) gets the lowest sibling index (0).
                 cellsOrderedByOffset[i].rectTransform.SetSiblingIndex(cellsOrderedByOffset.Length - 1 - i);
             }
         }
@@ -430,7 +466,7 @@ namespace Steft.SimpleCarousel
 
             m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
             OnEnable();
-            UpdateCells();
+            RefreshView();
             onCenterChanged.Invoke(GetCenterCell());
         }
 
@@ -572,7 +608,7 @@ namespace Steft.SimpleCarousel
             else
             {
                 m_CenterIndex = m_TargetCenterIndex = index;
-                UpdateCells();
+                RefreshView();
                 onCenterChanged.Invoke(GetCenterCell());
             }
         }

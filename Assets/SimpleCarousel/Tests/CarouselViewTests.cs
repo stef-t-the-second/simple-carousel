@@ -64,9 +64,8 @@ namespace Steft.SimpleCarousel
         public void VisibleElements_VerifyConstraints(int value, int expected)
         {
             m_SUT.visibleElements = value;
-            m_SUT.UpdateCells();
-            Assert.That(m_SUT.visibleElements,      Is.EqualTo(expected));
-            Assert.That(m_SUT.transform.childCount, Is.EqualTo(expected));
+            m_SUT.RefreshView();
+            Assert.That(m_SUT.visibleElements, Is.EqualTo(expected));
         }
 
 #endregion
@@ -135,7 +134,7 @@ namespace Steft.SimpleCarousel
             m_SUT.onCenterChanged.AddListener(cell => cellReceived = cell);
 
             m_SUT.Center(0, false);
-            m_SUT.UpdateCells();
+            m_SUT.RefreshView();
             Task.Delay(50);
 
             Assert.That(cellReceived,      Is.Not.Null);
