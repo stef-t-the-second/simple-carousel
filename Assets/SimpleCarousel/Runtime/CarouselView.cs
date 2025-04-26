@@ -34,10 +34,10 @@ namespace Steft.SimpleCarousel
         where TData : class, ICarouselData
     {
         [Tooltip("Event invoked when the center item changes.")] [SerializeField]
-        private UnityEvent<TData> m_OnCenterChanged = new();
+        private UnityEvent<ICarouselCell<ICarouselData>> m_OnCenterChanged = new();
 
         [Tooltip("Event invoked when the center item is clicked (or tapped).")] [SerializeField]
-        private UnityEvent<ICarouselCell> m_OnCenterClicked = new();
+        private UnityEvent<ICarouselCell<ICarouselData>> m_OnCenterClicked = new();
 
         [Space] [Min(3)] [Tooltip("Number of visible carousel cells (must be odd, minimum 3).")] [SerializeField]
         private int m_VisibleElements = 3;
@@ -133,16 +133,7 @@ namespace Steft.SimpleCarousel
         /// <summary>
         ///     Event invoked when the centered item changes in the carousel.
         /// </summary>
-        public UnityEvent<TData> onCenterChanged => m_OnCenterChanged;
-
-        private void InvokeOnCenterChangedWithCenterIndex()
-        {
-            if (m_Data.Count == 0)
-                return;
-
-            int index = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
-            onCenterChanged.Invoke(m_Data[index]);
-        }
+        public UnityEvent<ICarouselCell<ICarouselData>> onCenterChanged => m_OnCenterChanged;
 
         /// <summary>
         ///     Retrieves the cell currently positioned at the center of the carousel.
@@ -185,7 +176,7 @@ namespace Steft.SimpleCarousel
         ///     Handles click events on carousel cells, triggering animations and events when the center cell is clicked.
         /// </summary>
         /// <param name="cell">The carousel cell that was clicked.</param>
-        private void HandleCellClicked(ICarouselCell cell)
+        private void HandleCellClicked(ICarouselCell<ICarouselData> cell)
         {
             int centerIndex = GetCircularIndex(Mathf.RoundToInt(m_CenterIndex),       m_Data.Count);
             int targetIndex = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
@@ -289,7 +280,7 @@ namespace Steft.SimpleCarousel
                 m_TargetCenterIndex    = GetCircularIndex(Mathf.RoundToInt(m_TargetCenterIndex), m_Data.Count);
                 m_CenterIndex          = m_TargetCenterIndex;
                 m_CenterSmoothVelocity = 0f;
-                InvokeOnCenterChangedWithCenterIndex();
+                onCenterChanged.Invoke(GetCenterCell());
             }
         }
 
@@ -314,7 +305,7 @@ namespace Steft.SimpleCarousel
         /// <summary>
         ///     Updates the properties and layout of all cells in the carousel view based on their position relative to the center.
         /// </summary>
-        private void UpdateCells()
+        internal void UpdateCells()
         {
             if (transform.childCount == 0)
             {
@@ -440,7 +431,7 @@ namespace Steft.SimpleCarousel
             m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
             OnEnable();
             UpdateCells();
-            InvokeOnCenterChangedWithCenterIndex();
+            onCenterChanged.Invoke(GetCenterCell());
         }
 
 #region Public Methods
@@ -525,8 +516,8 @@ namespace Steft.SimpleCarousel
                 return;
             }
 
-            var dataNoNull = items.Where(d => d != null);
-            m_Data.InsertRange(index, dataNoNull);
+            var itemsNoNull = items.Where(d => d != null);
+            m_Data.InsertRange(index, itemsNoNull);
         }
 
         /// <summary>
@@ -581,7 +572,8 @@ namespace Steft.SimpleCarousel
             else
             {
                 m_CenterIndex = m_TargetCenterIndex = index;
-                InvokeOnCenterChangedWithCenterIndex();
+                UpdateCells();
+                onCenterChanged.Invoke(GetCenterCell());
             }
         }
 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Steft.SimpleCarousel
 {
@@ -8,11 +9,13 @@ namespace Steft.SimpleCarousel
     ///     Base class for carousel cells that can display data and be positioned within a carousel view.
     /// </summary>
     /// <typeparam name="TData">The type of data to be displayed in the cell.</typeparam>
+    [RequireComponent(typeof(Image))]
+    [DisallowMultipleComponent]
     public abstract class CarouselCell<TData> : MonoBehaviour, ICarouselCell<TData>, IPointerClickHandler
         where TData : class, ICarouselData
     {
         [Tooltip("Event invoked when the cell is clicked.")] [SerializeField]
-        private UnityEvent<ICarouselCell> m_OnClicked = new();
+        private UnityEvent<ICarouselCell<ICarouselData>> m_OnClicked = new();
 
         private float         m_OffsetFromCenter;
         private RectTransform m_RectTransform;
@@ -32,7 +35,7 @@ namespace Steft.SimpleCarousel
 
         public int index { get; set; }
 
-        public UnityEvent<ICarouselCell> onClicked => m_OnClicked;
+        public UnityEvent<ICarouselCell<ICarouselData>> onClicked => m_OnClicked;
 
         public virtual TData data
         {

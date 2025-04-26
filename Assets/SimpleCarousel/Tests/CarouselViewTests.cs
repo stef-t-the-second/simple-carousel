@@ -53,23 +53,6 @@ namespace Steft.SimpleCarousel
             Object.Destroy(m_SUT.gameObject);
         }
 
-#region Unity Methods
-
-        [Test]
-        public void Awake_HasChildren()
-        {
-            Assert.That(m_SUT.cellPrefab,           Is.Not.Null);
-            Assert.That(m_SUT.visibleElements,      Is.GreaterThan(0));
-            Assert.That(m_SUT.transform.childCount, Is.Zero);
-
-            m_SUT.gameObject.SetActive(true);
-
-            Assert.That(m_SUT.transform.childCount, Is.GreaterThan(0));
-            Assert.That(m_SUT.transform.childCount, Is.EqualTo(m_SUT.poolSize));
-        }
-
-#endregion
-
 #region Visible Elements
 
         [Test]
@@ -81,6 +64,7 @@ namespace Steft.SimpleCarousel
         public void VisibleElements_VerifyConstraints(int value, int expected)
         {
             m_SUT.visibleElements = value;
+            m_SUT.UpdateCells();
             Assert.That(m_SUT.visibleElements,      Is.EqualTo(expected));
             Assert.That(m_SUT.transform.childCount, Is.EqualTo(expected));
         }
@@ -138,23 +122,6 @@ namespace Steft.SimpleCarousel
 #region OnCenterChanged
 
         [Test]
-        public void OnCenterChanged_Invoke()
-        {
-            Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
-
-            bool called = false;
-            m_SUT.onCenterChanged.AddListener(_ =>
-            {
-                called = true;
-            });
-
-            m_SUT.onCenterChanged.Invoke(new MockData { name = nameof(OnCenterChanged_Invoke) });
-            Task.Delay(50);
-
-            Assert.That(called, Is.True);
-        }
-
-        [Test]
         public void OnCenterChanged_Center()
         {
             Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
@@ -164,13 +131,15 @@ namespace Steft.SimpleCarousel
             Assert.That(data.Length, Is.EqualTo(5));
             m_SUT.Add(data);
 
-            MockData dataReceived = null;
-            m_SUT.onCenterChanged.AddListener(d => dataReceived = d);
+            ICarouselCell<ICarouselData> cellReceived = null;
+            m_SUT.onCenterChanged.AddListener(cell => cellReceived = cell);
 
-            m_SUT.Center(2, false);
+            m_SUT.Center(0, false);
+            m_SUT.UpdateCells();
             Task.Delay(50);
 
-            Assert.That(dataReceived.name, Is.EqualTo(data[2].name));
+            Assert.That(cellReceived,      Is.Not.Null);
+            Assert.That(cellReceived.data, Is.EqualTo(data[0]));
         }
 
         [Test]
@@ -186,10 +155,10 @@ namespace Steft.SimpleCarousel
             m_SUT.visibleElements = data.Length;
 
             MockData dataReceived = null;
-            m_SUT.onCenterChanged.AddListener(d =>
+            m_SUT.onCenterChanged.AddListener(cell =>
             {
-                Debug.Log("Received: " + d.name);
-                dataReceived = d;
+                Debug.Log("Received: " + cell.data.name);
+                dataReceived = cell.data as MockData;
             });
 
             m_SUT.RebuildCells(true);

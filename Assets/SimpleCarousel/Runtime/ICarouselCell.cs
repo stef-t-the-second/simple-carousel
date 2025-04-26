@@ -34,7 +34,7 @@ namespace Steft.SimpleCarousel
         /// <summary>
         ///     The UnityEvent that is triggered when the cell is clicked.
         /// </summary>
-        UnityEvent<ICarouselCell> onClicked { get; }
+        UnityEvent<ICarouselCell<ICarouselData>> onClicked { get; }
 
         /// <summary>
         ///     Gets the data associated with this carousel cell.

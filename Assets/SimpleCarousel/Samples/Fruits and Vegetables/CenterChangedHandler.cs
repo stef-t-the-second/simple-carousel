@@ -4,9 +4,9 @@ namespace Steft.SimpleCarousel.Samples
 {
     internal class CenterChangedHandler : MonoBehaviour
     {
-        public void Handle(ProduceData data)
+        public void Handle(ICarouselCell<ICarouselData> cell)
         {
-            Debug.Log($"Center is '{data.name}'");
+            Debug.Log($"Center is '{cell.data.name}'");
         }
     }
 }
