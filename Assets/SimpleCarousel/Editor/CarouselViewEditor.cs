@@ -38,31 +38,25 @@ namespace Steft.SimpleCarousel
 
         public override void OnInspectorGUI()
         {
+            if (!Application.isPlaying)
+            {
+                if (GUILayout.Button("Preview View"))
+                {
+                    DestroyChildren(carouselView.transform);
+                    carouselView.RebuildView(true);
+                }
+
+                EditorGUILayout.Space(EditorGUIUtility.singleLineHeight);
+            }
+
             EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
             bool changed = EditorGUI.EndChangeCheck();
 
-            if (Application.isPlaying)
-                return;
-
-            if (carouselView.transform.childCount == 0)
-            {
-                carouselView.RebuildView();
-                return;
-            }
-
-            if (changed)
-            {
-                serializedObject.ApplyModifiedProperties();
-                DestroyChildren(carouselView.transform);
-                carouselView.RebuildView();
-                return;
-            }
-
-            if (GUILayout.Button("Rebuild Cells"))
+            if (!Application.isPlaying && changed)
             {
                 DestroyChildren(carouselView.transform);
-                carouselView.RebuildView();
+                carouselView.RebuildView(true);
             }
         }
     }

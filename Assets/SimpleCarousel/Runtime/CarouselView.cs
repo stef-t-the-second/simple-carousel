@@ -17,6 +17,11 @@ namespace Steft.SimpleCarousel
     public abstract class CarouselView : MonoBehaviour
     {
         /// <summary>
+        ///     Updates the properties and layout of all cells in the carousel view based on their position relative to the center.
+        /// </summary>
+        internal abstract void RefreshView();
+
+        /// <summary>
         ///     Rebuilds all cells in the carousel view.
         /// </summary>
         /// <param name="force">If true, forces a rebuild even if the number of cells matches the pool size.</param>
@@ -48,6 +53,8 @@ namespace Steft.SimpleCarousel
         [Tooltip("Prefab used to create carousel cells.")] [SerializeField]
         private CarouselCell<TData> m_CellPrefab;
 
+        private CarouselCell<TData> m_PreviousCellPrefab;
+
         [Tooltip("Collection of items to display in the carousel.")] [SerializeField]
         private List<TData> m_Data = new(32);
 
@@ -73,15 +80,7 @@ namespace Steft.SimpleCarousel
         internal CarouselCell<TData> cellPrefab
         {
             get => m_CellPrefab;
-            set
-            {
-                bool changed = m_CellPrefab != value;
-
-                m_CellPrefab = value;
-
-                if (changed)
-                    RebuildView(true);
-            }
+            set => m_CellPrefab = value;
         }
 
         /// <summary>
@@ -150,8 +149,8 @@ namespace Steft.SimpleCarousel
                 center = center.Next;
             }
 
-            if (center == null || center.Value == null)
-                throw new NullReferenceException($"{nameof(center)} at {m_CenterIndex}");
+            if (center == null || center.Value == null || center.Value.data == null)
+                return null;
 
             return center.Value;
         }
@@ -207,12 +206,12 @@ namespace Steft.SimpleCarousel
                         $"'{nameof(m_CellPrefab)}' is missing component that implements '{nameof(ICarouselCell<TData>)}'");
                 }
             }
-
-            OnEnable();
         }
 
         private void Awake()
         {
+            m_PreviousCellPrefab = m_CellPrefab;
+
             // Hide the prefab if it's a scene GameObject rather than a prefab asset
             // (IsValid returns false for prefab references from project, true for scene objects)
             if (m_CellPrefab.gameObject.scene.IsValid())
@@ -256,10 +255,15 @@ namespace Steft.SimpleCarousel
 
         public void Update()
         {
-            if (transform.childCount != poolSize)
-                RebuildView();
+            if (transform.childCount != poolSize || m_CellPrefab != m_PreviousCellPrefab)
+            {
+                RebuildView(true);
+                m_PreviousCellPrefab = m_CellPrefab;
+            }
             else
+            {
                 RefreshView();
+            }
 
             if (Mathf.Approximately(m_CenterIndex, m_TargetCenterIndex))
             {
@@ -302,16 +306,10 @@ namespace Steft.SimpleCarousel
 
 #endregion
 
-        /// <summary>
-        ///     Updates the properties and layout of all cells in the carousel view based on their position relative to the center.
-        /// </summary>
-        internal void RefreshView()
+        internal override void RefreshView()
         {
-            if (transform.childCount == 0)
-            {
-                RebuildView();
+            if (transform.childCount == 0 || m_CellPool.Count == 0)
                 return;
-            }
 
             var node = m_CellPool.First;
             while (node != null)
@@ -323,8 +321,12 @@ namespace Steft.SimpleCarousel
                 cell.offsetFromCenter = cell.index - m_CenterIndex + m_DeltaDragHandler.totalDelta.x;
                 HandleCellWrapping(node);
 
-                // Add visibility margin to smooth transition of elements entering/leaving view
-                cell.gameObject.SetActive(cell.offsetFromCenterAbs < depthMinusMargin);
+                cell.gameObject.SetActive(
+                    // Invisible if no data is available
+                    m_Data.Count > 0 &&
+                    // Add visibility margin to smooth transition of elements entering/leaving view
+                    cell.offsetFromCenterAbs < depthMinusMargin
+                );
 
                 RefreshCellDataIfNeeded(node.Value);
                 m_CarouselCellLayoutHandler.UpdateLayout(node.Value);
@@ -409,39 +411,44 @@ namespace Steft.SimpleCarousel
             }
         }
 
-        /// <summary>
-        /// Rebuilds the view by clearing existing cells, creating new cells, and adding them to the pool.
-        /// </summary>
-        /// <param name="force">Whether to force a rebuild independent of the view's state.</param>
         internal override void RebuildView(bool force = false)
         {
             if (!force && transform.childCount == poolSize && m_CellPool.Count == poolSize)
                 return;
 
-            ClearExistingCells();
+            DestroyExistingCells();
             CreateNewCells();
 
             if (m_CellPool.Count == 0)
                 return;
 
-            m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
             OnEnable();
-            RefreshView();
-            onCenterChanged.Invoke(GetCenterCell());
+            var centerCell = GetCenterCell();
+            if (centerCell == null)
+            {
+                m_CenterIndex = m_TargetCenterIndex = Mathf.Floor(m_VisibleElements / 2f);
+                RefreshView();
+            }
+            else
+            {
+                m_CenterIndex = m_TargetCenterIndex = centerCell.index;
+                RefreshView();
+                onCenterChanged.Invoke(centerCell);
+            }
         }
 
         /// <summary>
         /// Destroys all existing pooled cells and clears the pool collection.
         /// </summary>
-        private void ClearExistingCells()
+        private void DestroyExistingCells()
         {
-            if (transform.childCount == 0 && m_CellPool.Count == 0)
-                return;
-
-            foreach (var cell in m_CellPool)
+            if (Application.isPlaying)
             {
-                if (cell != null)
+                foreach (var cell in m_CellPool)
                 {
+                    if (cell == null)
+                        continue;
+
                     cell.onClicked.RemoveListener(HandleCellClicked);
                     Destroy(cell.gameObject);
                 }
@@ -473,9 +480,9 @@ namespace Steft.SimpleCarousel
                 return;
             }
 
-            if (transform.childCount > 0 || m_CellPool.Count > 0)
+            if (m_CellPool.Count > 0)
             {
-                Debug.LogError($"Cannot build cells while there are existing cells");
+                Debug.LogError("Cannot build cells while there are existing cells");
                 return;
             }
 
@@ -600,7 +607,7 @@ namespace Steft.SimpleCarousel
         public void RemoveAll()
         {
             m_Data.Clear();
-            RebuildView(true);
+            RefreshView();
         }
 
         /// <summary>

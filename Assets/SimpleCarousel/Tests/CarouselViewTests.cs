@@ -1,7 +1,9 @@
+using System.Collections;
 using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Steft.SimpleCarousel
 {
@@ -141,8 +143,8 @@ namespace Steft.SimpleCarousel
             Assert.That(cellReceived.data, Is.EqualTo(data[0]));
         }
 
-        [Test]
-        public void OnCenterChanged_RebuildCells()
+        [UnityTest]
+        public IEnumerator OnCenterChanged_RebuildCells()
         {
             Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
             Assert.That(m_SUT.data,            Is.Empty);
@@ -161,10 +163,11 @@ namespace Steft.SimpleCarousel
             });
 
             m_SUT.RebuildView(true);
-            Task.Delay(50);
+            yield return null; // waiting for rebuild to complete
 
-            Assert.That(dataReceived,      Is.Not.Null);
-            Assert.That(dataReceived.name, Is.EqualTo(data[2].name));
+            Assert.That(m_SUT.transform.childCount, Is.EqualTo(m_SUT.poolSize));
+            Assert.That(dataReceived,               Is.Not.Null);
+            Assert.That(dataReceived.name,          Is.EqualTo(data[2].name));
         }
 
 #endregion
