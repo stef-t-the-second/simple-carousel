@@ -160,7 +160,7 @@ namespace Steft.SimpleCarousel
                 dataReceived = cell.data as MockData;
             });
 
-            m_SUT.RebuildCells(true);
+            m_SUT.RebuildView(true);
             Task.Delay(50);
 
             Assert.That(dataReceived,      Is.Not.Null);

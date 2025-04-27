@@ -20,7 +20,7 @@ namespace Steft.SimpleCarousel
         ///     Rebuilds all cells in the carousel view.
         /// </summary>
         /// <param name="force">If true, forces a rebuild even if the number of cells matches the pool size.</param>
-        internal abstract void RebuildCells(bool force = false);
+        internal abstract void RebuildView(bool force = false);
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ namespace Steft.SimpleCarousel
                 m_CellPrefab = value;
 
                 if (changed)
-                    RebuildCells(true);
+                    RebuildView(true);
             }
         }
 
@@ -218,7 +218,7 @@ namespace Steft.SimpleCarousel
             if (m_CellPrefab.gameObject.scene.IsValid())
                 m_CellPrefab.gameObject.SetActive(false);
 
-            RebuildCells();
+            RebuildView();
         }
 
         private void OnEnable()
@@ -257,7 +257,7 @@ namespace Steft.SimpleCarousel
         public void Update()
         {
             if (transform.childCount != poolSize)
-                RebuildCells();
+                RebuildView();
             else
                 RefreshView();
 
@@ -309,7 +309,7 @@ namespace Steft.SimpleCarousel
         {
             if (transform.childCount == 0)
             {
-                RebuildCells();
+                RebuildView();
                 return;
             }
 
@@ -409,20 +409,38 @@ namespace Steft.SimpleCarousel
             }
         }
 
-        internal override void RebuildCells(bool force = false)
+        /// <summary>
+        /// Rebuilds the view by clearing existing cells, creating new cells, and adding them to the pool.
+        /// </summary>
+        /// <param name="force">Whether to force a rebuild independent of the view's state.</param>
+        internal override void RebuildView(bool force = false)
         {
-            if (m_CellPrefab == null)
-            {
-                Debug.LogError($"Cannot build cells while '{nameof(m_CellPrefab)}' is null");
-                return;
-            }
-
-            if (!force && transform.childCount == poolSize)
+            if (!force && transform.childCount == poolSize && m_CellPool.Count == poolSize)
                 return;
 
-            if (transform.childCount > 0)
+            ClearExistingCells();
+            CreateNewCells();
+
+            if (m_CellPool.Count == 0)
+                return;
+
+            m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
+            OnEnable();
+            RefreshView();
+            onCenterChanged.Invoke(GetCenterCell());
+        }
+
+        /// <summary>
+        /// Destroys all existing pooled cells and clears the pool collection.
+        /// </summary>
+        private void ClearExistingCells()
+        {
+            if (transform.childCount == 0 && m_CellPool.Count == 0)
+                return;
+
+            foreach (var cell in m_CellPool)
             {
-                foreach (var cell in m_CellPool)
+                if (cell != null)
                 {
                     cell.onClicked.RemoveListener(HandleCellClicked);
                     Destroy(cell.gameObject);
@@ -430,17 +448,47 @@ namespace Steft.SimpleCarousel
             }
 
             m_CellPool.Clear();
+
+            // Better safe than sorry: There shouldn't be any residual cells, but just in case clearing children.
+            foreach (Transform child in transform)
+            {
+                Destroy(child);
+            }
+        }
+
+        /// <summary>
+        /// Creates new cells, initializes them, and adds them to the pool.
+        /// </summary>
+        private void CreateNewCells()
+        {
+            if (m_CellPrefab == null)
+            {
+                Debug.LogError($"Cannot build cells while '{nameof(m_CellPrefab)}' is null");
+                return;
+            }
+
+            if (m_CellPrefab.transform is not RectTransform)
+            {
+                Debug.LogError($"'{nameof(m_CellPrefab)}' requires a RectTransform");
+                return;
+            }
+
+            if (transform.childCount > 0 || m_CellPool.Count > 0)
+            {
+                Debug.LogError($"Cannot build cells while there are existing cells");
+                return;
+            }
+
             for (int i = 0; i < poolSize; i++)
             {
                 var prefabInstance = Instantiate(m_CellPrefab.gameObject, transform);
                 prefabInstance.SetActive(true);
 
                 var rectTransform = prefabInstance.transform as RectTransform;
-                if (rectTransform == null)
-                    throw new NullReferenceException($"[{i}] RectTransform is null");
-
                 rectTransform.ResetToMiddleCenter();
 
+                // Set HideFlags in Editor when not playing:
+                // Any changes during playmode will be discarded anyway, so no HideFlags are needed.
                 if (!Application.isPlaying)
                 {
                     // Ensure hideFlags are properly set on all child objects since Unity Editor
@@ -452,22 +500,12 @@ namespace Steft.SimpleCarousel
                 }
 
                 var cell = prefabInstance.GetComponent<CarouselCell<TData>>();
-                cell.index = i - 1;
                 cell.onClicked.AddListener(HandleCellClicked);
+                cell.index          = i   - 1;
                 prefabInstance.name = "[" + cell.index + "]";
                 m_CellPool.AddLast(cell);
-
-                if (m_Data.Count > 0)
-                {
-                    int dataIndex = GetCircularIndex(cell.index, m_Data.Count);
-                    cell.data = m_Data[dataIndex];
-                }
+                RefreshCellDataIfNeeded(cell);
             }
-
-            m_CenterIndex = m_TargetCenterIndex = GetCenterCell().index;
-            OnEnable();
-            RefreshView();
-            onCenterChanged.Invoke(GetCenterCell());
         }
 
 #region Public Methods
@@ -562,7 +600,7 @@ namespace Steft.SimpleCarousel
         public void RemoveAll()
         {
             m_Data.Clear();
-            RebuildCells(true);
+            RebuildView(true);
         }
 
         /// <summary>

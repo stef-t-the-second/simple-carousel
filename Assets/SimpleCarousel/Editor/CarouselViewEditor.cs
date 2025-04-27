@@ -47,7 +47,7 @@ namespace Steft.SimpleCarousel
 
             if (carouselView.transform.childCount == 0)
             {
-                carouselView.RebuildCells();
+                carouselView.RebuildView();
                 return;
             }
 
@@ -55,14 +55,14 @@ namespace Steft.SimpleCarousel
             {
                 serializedObject.ApplyModifiedProperties();
                 DestroyChildren(carouselView.transform);
-                carouselView.RebuildCells();
+                carouselView.RebuildView();
                 return;
             }
 
             if (GUILayout.Button("Rebuild Cells"))
             {
                 DestroyChildren(carouselView.transform);
-                carouselView.RebuildCells();
+                carouselView.RebuildView();
             }
         }
     }
