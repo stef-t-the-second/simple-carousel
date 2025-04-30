@@ -122,8 +122,8 @@ namespace Steft.SimpleCarousel
 
 #region OnCenterChanged
 
-        [Test]
-        public void OnCenterChanged_Center()
+        [UnityTest]
+        public IEnumerator OnCenterChanged_Center()
         {
             Assert.That(m_SUT.onCenterChanged, Is.Not.Null);
             Assert.That(m_SUT.data,            Is.Empty);
@@ -135,9 +135,11 @@ namespace Steft.SimpleCarousel
             ICarouselCell<ICarouselData> cellReceived = null;
             m_SUT.onCenterChanged.AddListener(cell => cellReceived = cell);
 
+            m_SUT.RebuildView();
+            yield return null; // waiting for rebuild to complete
+
             m_SUT.Center(0, false);
             m_SUT.RefreshView();
-            Task.Delay(50);
 
             Assert.That(cellReceived,      Is.Not.Null);
             Assert.That(cellReceived.data, Is.EqualTo(data[0]));
